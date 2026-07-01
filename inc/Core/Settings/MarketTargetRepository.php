@@ -1,8 +1,8 @@
 <?php
 
-namespace AutoGamesDiscountCreator\Core\Settings;
+namespace UcikiDealsEngine\Core\Settings;
 
-use AutoGamesDiscountCreator\Core\Integration\WpmlSupport;
+use UcikiDealsEngine\Core\Integration\WpmlSupport;
 
 class MarketTargetRepository
 {
@@ -56,7 +56,7 @@ class MarketTargetRepository
 	{
 		global $wpdb;
 
-		$table = $wpdb->prefix . 'agdc_market_targets';
+		$table = $wpdb->prefix . UCIKI_DEALS_TABLE_MARKET_TARGETS;
 		$target = $wpdb->get_row(
 			$wpdb->prepare("SELECT * FROM {$table} WHERE market_key = %s LIMIT 1", $marketKey),
 			ARRAY_A
@@ -87,7 +87,7 @@ class MarketTargetRepository
 			$country = strtoupper((string) ($parts[1] ?? ''));
 
 			global $wpdb;
-			$table = $wpdb->prefix . 'agdc_market_targets';
+			$table = $wpdb->prefix . UCIKI_DEALS_TABLE_MARKET_TARGETS;
 			$target = $wpdb->get_row(
 				$wpdb->prepare(
 					"SELECT * FROM {$table} WHERE language_code = %s AND country_code = %s LIMIT 1",

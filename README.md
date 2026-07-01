@@ -1,15 +1,15 @@
-# Auto Games Discount Creator
+# Uciki Deals Engine
 
-`auto-games-discount-creator` is a custom WordPress plugin for sourcing game deals and free games, storing normalized offer data, and publishing market-aware content for `uciki.com`.
+`uciki-deals-engine` is a custom WordPress plugin for sourcing game deals and free games, storing normalized offer data, and publishing market-aware content for `uciki.com`.
 
 The plugin currently focuses on:
 
 - IsThereAnyDeal-powered deal discovery
-- daily discount roundups
+- daily deals digests
 - free-game posts
 - multi-store offer normalization
 - market/language-aware publishing
-- dynamic snapshot-backed roundup pages
+- dynamic snapshot-backed digest pages
 
 ## What Changed
 
@@ -17,26 +17,26 @@ This repository is no longer just a simple “scrape and publish” plugin.
 
 It now includes:
 
-- a normalized `agdc_*` data model for stores, games, offers, snapshots, runs, and generated posts
+- a normalized `uciki_deals_*` data model for stores, games, offers, snapshots, runs, and generated posts
 - a native WordPress settings screen instead of ad-hoc config-only behavior
 - runtime/debug state in wp-admin
 - ITAD session bootstrap logic
 - store URL normalization and redirect cleanup
 - store/CDN image resolution strategies
-- score/review enrichment for roundup cards
-- dynamic `agdc_roundup` pages backed by stored snapshots instead of `post_content`
+- score/review enrichment for digest cards
+- dynamic `uciki_deals_digest` pages backed by stored snapshots instead of `post_content`
 
 ## Architecture
 
 High-level flow:
 
 1. Source payloads are loaded from plugin settings.
-2. ITAD data is fetched and normalized into `agdc_*` tables.
+2. ITAD data is fetched and normalized into `uciki_deals_*` tables.
 3. Daily and free-game flows are selected separately.
 4. Publishing creates:
    - standard posts for free games
-   - `agdc_roundup` entries for daily deal pages
-5. Daily roundup pages render from `_agdc_snapshot_payload` at request time.
+   - `uciki_deals_digest` entries for daily deal pages
+5. Daily digest pages render from `_uciki_deals_snapshot_payload` at request time.
 
 Key components:
 
@@ -51,15 +51,15 @@ Key components:
 - `inc/Modules/AdminSettingsModule.php`
 - `inc/Modules/SetupModule.php`
 - `inc/Modules/ScheduleModule.php`
-- `inc/Modules/RoundupModule.php`
+- `inc/Modules/DigestModule.php`
 - `inc/Post/Poster.php`
-- `inc/Post/Strategy/DailyPostStrategy.php`
+- `inc/Post/Strategy/DailyDigestPostStrategy.php`
 - `inc/Post/Strategy/FreeGamesPostStrategy.php`
-- `inc/Post/DailyRoundupSnapshotRenderer.php`
+- `inc/Post/DailyDigestSnapshotRenderer.php`
 
 ## Data Model
 
-The plugin keeps legacy tables intact but now uses normalized `agdc_*` tables for active operation.
+The plugin keeps `uciki_deals_source_*` tables for imported source records and uses normalized `uciki_deals_*` tables for publishing and runtime operations.
 
 See:
 
@@ -67,19 +67,19 @@ See:
 
 Core tables include:
 
-- `agdc_stores`
-- `agdc_market_targets`
-- `agdc_games`
-- `agdc_offers`
-- `agdc_offer_snapshots`
-- `agdc_generated_posts`
-- `agdc_runs`
+- `uciki_deals_stores`
+- `uciki_deals_market_targets`
+- `uciki_deals_games`
+- `uciki_deals_offers`
+- `uciki_deals_offer_snapshots`
+- `uciki_deals_generated_posts`
+- `uciki_deals_runs`
 
 ## Publishing Model
 
-### Daily roundups
+### Daily digests
 
-- stored as `agdc_roundup`
+- stored as `uciki_deals_digest`
 - URL is still a normal WordPress permalink
 - visual content is rendered dynamically from snapshot data
 - `post_content` is no longer the source of truth
@@ -87,7 +87,7 @@ Core tables include:
 ### Free games
 
 - published as regular WordPress posts
-- triggered independently from the daily roundup flow
+- triggered independently from the daily digest flow
 
 ## Admin Features
 

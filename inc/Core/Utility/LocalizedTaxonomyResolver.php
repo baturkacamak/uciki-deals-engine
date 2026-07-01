@@ -1,8 +1,8 @@
 <?php
 
-namespace AutoGamesDiscountCreator\Core\Utility;
+namespace UcikiDealsEngine\Core\Utility;
 
-use AutoGamesDiscountCreator\Core\Integration\WpmlSupport;
+use UcikiDealsEngine\Core\Integration\WpmlSupport;
 
 class LocalizedTaxonomyResolver
 {
@@ -58,7 +58,7 @@ class LocalizedTaxonomyResolver
 
 	private function getCategoryConfig(string $contentKind, array $copySet): array
 	{
-		if ($contentKind === 'free_game') {
+		if ($contentKind === UCIKI_DEALS_CONTENT_KIND_FREE_GAME) {
 			return [
 				'name' => (string) ($copySet['free_category_name'] ?? 'Free Games'),
 				'slug_base' => (string) ($copySet['free_category_slug_base'] ?? 'free-games'),
@@ -75,7 +75,7 @@ class LocalizedTaxonomyResolver
 
 	private function getTagConfigs(string $contentKind, array $copySet): array
 	{
-		$tagNames = $contentKind === 'free_game'
+		$tagNames = $contentKind === UCIKI_DEALS_CONTENT_KIND_FREE_GAME
 			? (array) ($copySet['free_tag_names'] ?? [])
 			: (array) ($copySet['daily_tag_names'] ?? []);
 

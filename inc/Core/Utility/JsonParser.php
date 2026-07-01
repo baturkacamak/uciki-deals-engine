@@ -11,7 +11,7 @@
  * Class for parsing JSON data
  */
 
-namespace AutoGamesDiscountCreator\Core\Utility;
+namespace UcikiDealsEngine\Core\Utility;
 
 class JsonParser
 {

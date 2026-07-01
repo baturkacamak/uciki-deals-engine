@@ -1,20 +1,20 @@
 <?php
 
-namespace AutoGamesDiscountCreator;
+namespace UcikiDealsEngine;
 
-use AutoGamesDiscountCreator\Core\Module\Initializer\ModuleInitializer;
-use AutoGamesDiscountCreator\Core\Module\Registry\ModuleRegistrar;
-use AutoGamesDiscountCreator\Core\ModulesManager;
-use AutoGamesDiscountCreator\Core\Settings\SettingsRepository;
+use UcikiDealsEngine\Core\Module\Initializer\ModuleInitializer;
+use UcikiDealsEngine\Core\Module\Registry\ModuleRegistrar;
+use UcikiDealsEngine\Core\ModulesManager;
+use UcikiDealsEngine\Core\Settings\SettingsRepository;
 use GuzzleHttp\Client;
 
-if (!class_exists('AutoGamesDiscountCreator\AutoGamesDiscountCreator')) {
+if (!class_exists('UcikiDealsEngine\UcikiDealsEngine')) {
 	/**
-	 * Class AutoGamesDiscountCreator
+	 * Class UcikiDealsEngine
 	 *
-	 * @package AutoGamesDiscountCreator
+	 * @package         UcikiDealsEngine
 	 */
-	class AutoGamesDiscountCreator
+	class UcikiDealsEngine
 	{
 
 		/**

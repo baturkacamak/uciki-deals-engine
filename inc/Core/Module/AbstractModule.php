@@ -6,11 +6,11 @@
  * Time: 19:51
  */
 
-namespace AutoGamesDiscountCreator\Core\Module;
+namespace UcikiDealsEngine\Core\Module;
 
-use AutoGamesDiscountCreator\Core\Module;
-use AutoGamesDiscountCreator\Core\WordPress\WordPressFunctions;
-use AutoGamesDiscountCreator\Core\WordPress\WordPressFunctionsInterface;
+use UcikiDealsEngine\Core\Module;
+use UcikiDealsEngine\Core\WordPress\WordPressFunctions;
+use UcikiDealsEngine\Core\WordPress\WordPressFunctionsInterface;
 
 abstract class AbstractModule implements Module
 {

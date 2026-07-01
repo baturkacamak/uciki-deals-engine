@@ -1,8 +1,8 @@
 <?php
 
-namespace AutoGamesDiscountCreator\Core\Utility\Image\Strategy;
+namespace UcikiDealsEngine\Core\Utility\Image\Strategy;
 
-use AutoGamesDiscountCreator\Core\Utility\Image\ImageUrlNormalizer;
+use UcikiDealsEngine\Core\Utility\Image\ImageUrlNormalizer;
 
 class FanaticalImageStrategy implements ImageSourceStrategyInterface
 {

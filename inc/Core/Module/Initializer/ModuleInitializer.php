@@ -6,9 +6,9 @@
  * Time: 16:26
  */
 
-namespace AutoGamesDiscountCreator\Core\Module\Initializer;
+namespace UcikiDealsEngine\Core\Module\Initializer;
 
-use AutoGamesDiscountCreator\Core\Module;
+use UcikiDealsEngine\Core\Module;
 
 class ModuleInitializer implements ModuleInitializerInterface
 {

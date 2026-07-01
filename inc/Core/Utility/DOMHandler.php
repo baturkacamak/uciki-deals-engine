@@ -7,18 +7,18 @@
  */
 
 
-namespace AutoGamesDiscountCreator\Core\Utility;
+namespace UcikiDealsEngine\Core\Utility;
 
 use DOMNode;
 use DOMNodeList;
 use DOMXPath;
 use Exception;
 
-if (!class_exists('AutoGamesDiscountCreator\DOMNodeHandler')) {
+if (!class_exists('UcikiDealsEngine\DOMNodeHandler')) {
 	/**
 	 * Class DOMNodeHandler
 	 *
-	 * @package AutoGamesDiscountCreator
+	 * @package         UcikiDealsEngine
 	 */
 	class DOMHandler
 	{

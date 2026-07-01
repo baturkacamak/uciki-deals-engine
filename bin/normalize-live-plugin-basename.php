@@ -12,14 +12,21 @@ if (!is_array($activePlugins)) {
 $normalized = [];
 foreach ($activePlugins as $pluginFile) {
 	$pluginFile = (string) $pluginFile;
-	if ($pluginFile === '' || $pluginFile === 'rambouillet/rambouillet.php' || $pluginFile === 'rambouillet/autogamesdiscountcreator.php') {
+	if ($pluginFile === '') {
+		continue;
+	}
+
+	$pluginDir = dirname($pluginFile);
+	$pluginBasename = basename($pluginFile);
+
+	if ($pluginBasename === 'uciki-deals-engine.php' && $pluginDir !== 'uciki-deals-engine') {
 		continue;
 	}
 
 	$normalized[] = $pluginFile;
 }
 
-$normalized[] = 'auto-games-discount-creator/autogamesdiscountcreator.php';
+$normalized[] = 'uciki-deals-engine/uciki-deals-engine.php';
 $normalized = array_values(array_unique($normalized));
 
 update_option('active_plugins', $normalized, false);

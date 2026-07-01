@@ -1,6 +1,6 @@
 <?php
 
-namespace AutoGamesDiscountCreator\Core\Utility\Image;
+namespace UcikiDealsEngine\Core\Utility\Image;
 
 class ImageUrlNormalizer
 {

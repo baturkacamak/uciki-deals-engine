@@ -6,7 +6,7 @@
  * Time: 16:24
  */
 
-namespace AutoGamesDiscountCreator\Core\Module\Registry;
+namespace UcikiDealsEngine\Core\Module\Registry;
 
 /**
  * Interface for module registrar classes.

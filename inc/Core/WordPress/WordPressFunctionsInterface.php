@@ -7,7 +7,7 @@
  * Time: 10:49
  */
 
-namespace AutoGamesDiscountCreator\Core\WordPress;
+namespace UcikiDealsEngine\Core\WordPress;
 
 interface WordPressFunctionsInterface
 {
@@ -35,7 +35,7 @@ interface WordPressFunctionsInterface
 		string $hook,
 		string $interval,
 		string $method,
-		int $timestamp = null,
+		?int $timestamp = null,
 		int $priority = 10,
 		int $acceptedArguments = 1
 	): void;

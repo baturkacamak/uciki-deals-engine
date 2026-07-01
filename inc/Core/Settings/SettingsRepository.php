@@ -1,8 +1,8 @@
 <?php
 
-namespace AutoGamesDiscountCreator\Core\Settings;
+namespace UcikiDealsEngine\Core\Settings;
 
-use AutoGamesDiscountCreator\Core\Utility\JsonParser;
+use UcikiDealsEngine\Core\Utility\JsonParser;
 use Exception;
 
 class SettingsRepository
@@ -19,7 +19,7 @@ class SettingsRepository
 		$stored_settings = [];
 
 		if (function_exists('get_option')) {
-			$stored_settings = get_option(AGDC_SETTINGS_OPTION, []);
+			$stored_settings = get_option(UCIKI_DEALS_SETTINGS_OPTION, []);
 		}
 
 		if (!is_array($stored_settings)) {
@@ -39,7 +39,7 @@ class SettingsRepository
 		$json_settings = [];
 
 		try {
-			$json_settings = (new JsonParser(AGDC_SETTINGS_FILE))->parse();
+			$json_settings = (new JsonParser(UCIKI_DEALS_SETTINGS_FILE))->parse();
 		} catch (Exception $exception) {
 			$json_settings = [];
 		}

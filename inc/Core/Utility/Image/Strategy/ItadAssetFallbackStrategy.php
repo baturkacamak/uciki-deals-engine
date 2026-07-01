@@ -1,6 +1,6 @@
 <?php
 
-namespace AutoGamesDiscountCreator\Core\Utility\Image\Strategy;
+namespace UcikiDealsEngine\Core\Utility\Image\Strategy;
 
 class ItadAssetFallbackStrategy implements ImageSourceStrategyInterface
 {

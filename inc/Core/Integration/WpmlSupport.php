@@ -1,6 +1,6 @@
 <?php
 
-namespace AutoGamesDiscountCreator\Core\Integration;
+namespace UcikiDealsEngine\Core\Integration;
 
 class WpmlSupport
 {

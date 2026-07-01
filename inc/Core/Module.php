@@ -6,7 +6,7 @@
  * Time: 19:49
  */
 
-namespace AutoGamesDiscountCreator\Core;
+namespace UcikiDealsEngine\Core;
 
 interface Module
 {

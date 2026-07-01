@@ -6,21 +6,21 @@
  * Time: 18:28
  */
 
-namespace AutoGamesDiscountCreator\Post\Strategy;
+namespace UcikiDealsEngine\Post\Strategy;
 
-use AutoGamesDiscountCreator\Core\Settings\MarketTargetRepository;
-use AutoGamesDiscountCreator\Core\Utility\Date;
-use AutoGamesDiscountCreator\Core\Utility\GameReviewLookup;
-use AutoGamesDiscountCreator\Core\Utility\OfferImageResolver;
-use AutoGamesDiscountCreator\Core\Utility\UtilityFactory;
-use AutoGamesDiscountCreator\Core\WordPress\WordPressFunctionsInterface;
-use AutoGamesDiscountCreator\Post\DailyRoundupSnapshotRenderer;
+use UcikiDealsEngine\Core\Settings\MarketTargetRepository;
+use UcikiDealsEngine\Core\Utility\Date;
+use UcikiDealsEngine\Core\Utility\GameReviewLookup;
+use UcikiDealsEngine\Core\Utility\OfferImageResolver;
+use UcikiDealsEngine\Core\Utility\UtilityFactory;
+use UcikiDealsEngine\Core\WordPress\WordPressFunctionsInterface;
+use UcikiDealsEngine\Post\DailyDigestSnapshotRenderer;
 /**
- * Class DailyPostStrategy
+ * Class DailyDigestPostStrategy
  *
  * This class is a strategy for creating daily game discount posts.
  */
-class DailyPostStrategy implements PostTypeStrategy
+class DailyDigestPostStrategy implements PostTypeStrategy
 {
 	/**
 	 * @var array $gameData An array of game data to include in the post content.
@@ -31,11 +31,11 @@ class DailyPostStrategy implements PostTypeStrategy
 	private array $marketTarget;
 	private array $copySet;
 	private OfferImageResolver $offerImageResolver;
-	private DailyRoundupSnapshotRenderer $snapshotRenderer;
+	private DailyDigestSnapshotRenderer $snapshotRenderer;
 	private GameReviewLookup $gameReviewLookup;
 
 	/**
-	 * DailyPostStrategy constructor.
+	 * DailyDigestPostStrategy constructor.
 	 *
 	 * @param array $gameData An array of game data to include in the post content.
 	 * @param WordPressFunctionsInterface $wpFunctions
@@ -51,7 +51,7 @@ class DailyPostStrategy implements PostTypeStrategy
 		$this->gameReviewLookup = $utilityFactory->createGameReviewLookup();
 		$this->marketTarget = $marketTarget ?: (new MarketTargetRepository())->getDefaultTarget();
 		$this->copySet = (new MarketTargetRepository())->getCopySet($this->marketTarget);
-		$this->snapshotRenderer = new DailyRoundupSnapshotRenderer();
+		$this->snapshotRenderer = new DailyDigestSnapshotRenderer();
 	}
 
 	/**
@@ -170,7 +170,7 @@ class DailyPostStrategy implements PostTypeStrategy
 
 	public function getContentKind(): string
 	{
-		return 'discount_roundup';
+		return UCIKI_DEALS_CONTENT_KIND_DAILY_DIGEST;
 	}
 
 	public function getMarketTarget(): array

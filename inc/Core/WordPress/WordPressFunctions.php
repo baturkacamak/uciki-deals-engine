@@ -6,7 +6,7 @@
  * Time: 16:13
  */
 
-namespace AutoGamesDiscountCreator\Core\WordPress;
+namespace UcikiDealsEngine\Core\WordPress;
 
 use WP_Error;
 
@@ -63,7 +63,7 @@ class WordPressFunctions implements WordPressFunctionsInterface
 		string $hook,
 		string $interval,
 		string $method,
-		int $timestamp = null,
+		?int $timestamp = null,
 		int $priority = 10,
 		int $acceptedArguments = 1
 	): void {

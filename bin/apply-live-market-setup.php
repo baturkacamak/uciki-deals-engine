@@ -216,7 +216,7 @@ $settings['custom_posts_sync_option'] = array_merge(
 		'wp_navigation' => 1,
 		'wp_template' => 1,
 		'wp_template_part' => 1,
-		'agdc_roundup' => 1,
+		UCIKI_DEALS_POST_TYPE_DIGEST => 1,
 	]
 );
 
@@ -235,8 +235,8 @@ $tm['custom_fields_translation'] = array_merge(
 	is_array($tm['custom_fields_translation'] ?? null) ? $tm['custom_fields_translation'] : [],
 	[
 		'footnotes' => 2,
-		'_agdc_content_kind' => 1,
-		'_agdc_snapshot_payload' => 1,
+		UCIKI_DEALS_META_CONTENT_KIND => 1,
+		UCIKI_DEALS_META_SNAPSHOT_PAYLOAD => 1,
 	]
 );
 $tm['custom-types_readonly_config'] = array_merge(
@@ -247,7 +247,7 @@ $tm['custom-types_readonly_config'] = array_merge(
 		'wp_navigation' => 1,
 		'wp_template' => 1,
 		'wp_template_part' => 1,
-		'agdc_roundup' => 1,
+		UCIKI_DEALS_POST_TYPE_DIGEST => 1,
 	]
 );
 $tm['taxonomies_readonly_config'] = array_merge(
@@ -265,7 +265,7 @@ $tm['custom_fields_encoding'] = array_merge(
 );
 
 $readonly = is_array($tm['custom_fields_readonly_config'] ?? null) ? $tm['custom_fields_readonly_config'] : [];
-foreach (['footnotes', '_agdc_content_kind', '_agdc_snapshot_payload'] as $field) {
+foreach (['footnotes', UCIKI_DEALS_META_CONTENT_KIND, UCIKI_DEALS_META_SNAPSHOT_PAYLOAD] as $field) {
 	if (!in_array($field, $readonly, true)) {
 		$readonly[] = $field;
 	}

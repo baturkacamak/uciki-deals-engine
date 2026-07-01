@@ -1,8 +1,8 @@
 <?php
 
-namespace AutoGamesDiscountCreator\Core\Utility;
+namespace UcikiDealsEngine\Core\Utility;
 
-use AutoGamesDiscountCreator\Core\Settings\SettingsRepository;
+use UcikiDealsEngine\Core\Settings\SettingsRepository;
 
 class OfferSelectionService
 {
@@ -40,12 +40,12 @@ class OfferSelectionService
 		}
 
 		$marketTargetId = $this->extractMarketTargetId($offers);
-		$posted_offer_ids = $this->getPostedOfferIds(array_column($offers, 'offer_id'), 'discount_roundup', $marketTargetId);
+		$posted_offer_ids = $this->getPostedOfferIds(array_column($offers, 'offer_id'), UCIKI_DEALS_CONTENT_KIND_DAILY_DIGEST, $marketTargetId);
 		$recently_posted_game_ids = $this->getRecentlyPostedGameIds(
 			array_column($offers, 'game_id'),
-			'discount_roundup',
+			UCIKI_DEALS_CONTENT_KIND_DAILY_DIGEST,
 			$marketTargetId,
-			$this->getRepeatWindowDays('discount_roundup')
+			$this->getRepeatWindowDays(UCIKI_DEALS_CONTENT_KIND_DAILY_DIGEST)
 		);
 		$summary['already_posted'] = count(
 			array_filter(
@@ -90,12 +90,12 @@ class OfferSelectionService
 		}
 
 		$marketTargetId = $this->extractMarketTargetId($offers);
-		$posted_offer_ids = $this->getPostedOfferIds(array_column($offers, 'offer_id'), 'discount_roundup', $marketTargetId);
+		$posted_offer_ids = $this->getPostedOfferIds(array_column($offers, 'offer_id'), UCIKI_DEALS_CONTENT_KIND_DAILY_DIGEST, $marketTargetId);
 		$recently_posted_game_ids = $this->getRecentlyPostedGameIds(
 			array_column($offers, 'game_id'),
-			'discount_roundup',
+			UCIKI_DEALS_CONTENT_KIND_DAILY_DIGEST,
 			$marketTargetId,
-			$this->getRepeatWindowDays('discount_roundup')
+			$this->getRepeatWindowDays(UCIKI_DEALS_CONTENT_KIND_DAILY_DIGEST)
 		);
 		$offers = array_values(
 			array_filter(
@@ -163,7 +163,7 @@ class OfferSelectionService
 		}
 
 		$marketTargetId = $this->extractMarketTargetId($offers);
-		$freeRepeatWindowDays = $this->getRepeatWindowDays('free_game');
+		$freeRepeatWindowDays = $this->getRepeatWindowDays(UCIKI_DEALS_CONTENT_KIND_FREE_GAME);
 		$posted_offer_ids = $freeRepeatWindowDays > 0
 			? $this->getHourlyBlockedOfferIds(array_column($offers, 'offer_id'), $marketTargetId)
 			: [];
@@ -212,7 +212,7 @@ class OfferSelectionService
 		}
 
 		$marketTargetId = $this->extractMarketTargetId($offers);
-		$freeRepeatWindowDays = $this->getRepeatWindowDays('free_game');
+		$freeRepeatWindowDays = $this->getRepeatWindowDays(UCIKI_DEALS_CONTENT_KIND_FREE_GAME);
 		$posted_offer_ids = $freeRepeatWindowDays > 0
 			? $this->getHourlyBlockedOfferIds(array_column($offers, 'offer_id'), $marketTargetId)
 			: [];
@@ -261,7 +261,7 @@ class OfferSelectionService
 		}
 
 		$placeholders = implode(', ', array_fill(0, count($offer_ids), '%d'));
-		$table = $wpdb->prefix . 'agdc_generated_posts';
+		$table = $wpdb->prefix . UCIKI_DEALS_TABLE_GENERATED_POSTS;
 		if ($marketTargetId !== null && $marketTargetId > 0) {
 			$query = $wpdb->prepare(
 				"SELECT DISTINCT offer_id FROM {$table} WHERE content_kind = %s AND market_target_id = %d AND offer_id IN ({$placeholders})",
@@ -295,7 +295,7 @@ class OfferSelectionService
 		}
 
 		$placeholders = implode(', ', array_fill(0, count($offer_ids), '%d'));
-		$table = $wpdb->prefix . 'agdc_generated_posts';
+		$table = $wpdb->prefix . UCIKI_DEALS_TABLE_GENERATED_POSTS;
 
 		if ($marketTargetId !== null && $marketTargetId > 0) {
 			$query = $wpdb->prepare(
@@ -341,7 +341,7 @@ class OfferSelectionService
 		}
 
 		$placeholders = implode(', ', array_fill(0, count($gameIds), '%d'));
-		$table = $wpdb->prefix . 'agdc_generated_posts';
+		$table = $wpdb->prefix . UCIKI_DEALS_TABLE_GENERATED_POSTS;
 		$threshold = gmdate('Y-m-d H:i:s', time() - ($windowDays * DAY_IN_SECONDS));
 
 		if ($marketTargetId !== null && $marketTargetId > 0) {
@@ -384,7 +384,7 @@ class OfferSelectionService
 		}
 
 		$placeholders = implode(', ', array_fill(0, count($gameIds), '%d'));
-		$table = $wpdb->prefix . 'agdc_generated_posts';
+		$table = $wpdb->prefix . UCIKI_DEALS_TABLE_GENERATED_POSTS;
 
 		if ($marketTargetId !== null && $marketTargetId > 0) {
 			$query = $wpdb->prepare(
@@ -414,7 +414,7 @@ class OfferSelectionService
 	{
 		$dataModel = is_array($this->settings['data_model'] ?? null) ? $this->settings['data_model'] : [];
 
-		if ($contentKind === 'free_game') {
+		if ($contentKind === UCIKI_DEALS_CONTENT_KIND_FREE_GAME) {
 			return max(0, (int) ($dataModel['free_repeat_window_days'] ?? 7));
 		}
 
@@ -425,7 +425,7 @@ class OfferSelectionService
 	{
 		return $this->getPostedOfferIdsSince(
 			$offerIds,
-			'free_game',
+			UCIKI_DEALS_CONTENT_KIND_FREE_GAME,
 			$marketTargetId,
 			$this->getFreeGameRepeatThreshold()
 		);
@@ -435,7 +435,7 @@ class OfferSelectionService
 	{
 		return $this->getPostedGameIdsSince(
 			$gameIds,
-			'free_game',
+			UCIKI_DEALS_CONTENT_KIND_FREE_GAME,
 			$marketTargetId,
 			$this->getFreeGameRepeatThreshold()
 		);
@@ -443,7 +443,7 @@ class OfferSelectionService
 
 	private function getFreeGameRepeatThreshold(): string
 	{
-		$windowDays = $this->getRepeatWindowDays('free_game');
+		$windowDays = $this->getRepeatWindowDays(UCIKI_DEALS_CONTENT_KIND_FREE_GAME);
 		$currentTimestamp = current_time('timestamp');
 
 		if ($windowDays <= 0) {

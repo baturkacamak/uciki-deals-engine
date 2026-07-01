@@ -1,21 +1,21 @@
 <?php
 
-namespace AutoGamesDiscountCreator\Modules;
+namespace UcikiDealsEngine\Modules;
 
-use AutoGamesDiscountCreator\Core\Module\AbstractModule;
-use AutoGamesDiscountCreator\Core\Settings\RuntimeStateRepository;
-use AutoGamesDiscountCreator\Core\Settings\SettingsRepository;
-use AutoGamesDiscountCreator\Core\Utility\GameInformationDatabase;
-use AutoGamesDiscountCreator\Core\Utility\OfferSelectionService;
-use AutoGamesDiscountCreator\Core\Utility\Scraper;
-use AutoGamesDiscountCreator\Modules\ScheduleModule;
+use UcikiDealsEngine\Core\Module\AbstractModule;
+use UcikiDealsEngine\Core\Settings\RuntimeStateRepository;
+use UcikiDealsEngine\Core\Settings\SettingsRepository;
+use UcikiDealsEngine\Core\Utility\GameInformationDatabase;
+use UcikiDealsEngine\Core\Utility\OfferSelectionService;
+use UcikiDealsEngine\Core\Utility\Scraper;
+use UcikiDealsEngine\Modules\ScheduleModule;
 use Throwable;
 
 class AdminSettingsModule extends AbstractModule
 {
-	private const MENU_SLUG_DASHBOARD = 'auto-games-discount-creator';
-	private const MENU_SLUG_CATALOG = 'agdc-catalog';
-	private const MENU_SLUG_SETTINGS = 'agdc-settings';
+	private const MENU_SLUG_DASHBOARD = 'uciki-deals-engine';
+	private const MENU_SLUG_CATALOG = 'uciki-deals-catalog';
+	private const MENU_SLUG_SETTINGS = 'uciki-deals-settings';
 	private const GENERATED_POSTS_PER_PAGE = 12;
 	private const OFFERS_PER_PAGE = 20;
 
@@ -35,17 +35,17 @@ class AdminSettingsModule extends AbstractModule
 	{
 		$this->wpFunctions->addHook('admin_menu', 'registerAdminPage');
 		$this->wpFunctions->addHook('admin_init', 'registerSettings');
-		$this->wpFunctions->addHook('admin_post_agdc_test_fetch', 'handleTestFetch');
-		$this->wpFunctions->addHook('admin_post_agdc_run_task', 'handleRunTask');
-		$this->wpFunctions->addHook('admin_post_agdc_cleanup_drafts', 'handleCleanupDrafts');
-		$this->wpFunctions->addHook('plugin_action_links_' . plugin_basename(AGDC_PLUGIN_FILE), 'addPluginActionLinks');
+		$this->wpFunctions->addHook('admin_post_uciki_deals_test_fetch', 'handleTestFetch');
+		$this->wpFunctions->addHook('admin_post_uciki_deals_run_task', 'handleRunTask');
+		$this->wpFunctions->addHook('admin_post_uciki_deals_cleanup_drafts', 'handleCleanupDrafts');
+		$this->wpFunctions->addHook('plugin_action_links_' . plugin_basename(UCIKI_DEALS_PLUGIN_FILE), 'addPluginActionLinks');
 	}
 
 	public function registerAdminPage(): void
 	{
 		add_menu_page(
-			__('Auto Games Discount Creator', 'auto-games-discount-creator'),
-			__('Auto Games Discount Creator', 'auto-games-discount-creator'),
+			__('Uciki Deals Engine', 'uciki-deals-engine'),
+			__('Uciki Deals Engine', 'uciki-deals-engine'),
 			'manage_options',
 			self::MENU_SLUG_DASHBOARD,
 			[$this, 'renderDashboardPage'],
@@ -55,8 +55,8 @@ class AdminSettingsModule extends AbstractModule
 
 		add_submenu_page(
 			self::MENU_SLUG_DASHBOARD,
-			__('Dashboard', 'auto-games-discount-creator'),
-			__('Dashboard', 'auto-games-discount-creator'),
+			__('Dashboard', 'uciki-deals-engine'),
+			__('Dashboard', 'uciki-deals-engine'),
 			'manage_options',
 			self::MENU_SLUG_DASHBOARD,
 			[$this, 'renderDashboardPage']
@@ -64,8 +64,8 @@ class AdminSettingsModule extends AbstractModule
 
 		add_submenu_page(
 			self::MENU_SLUG_DASHBOARD,
-			__('Catalog', 'auto-games-discount-creator'),
-			__('Catalog', 'auto-games-discount-creator'),
+			__('Catalog', 'uciki-deals-engine'),
+			__('Catalog', 'uciki-deals-engine'),
 			'manage_options',
 			self::MENU_SLUG_CATALOG,
 			[$this, 'renderCatalogPage']
@@ -73,8 +73,8 @@ class AdminSettingsModule extends AbstractModule
 
 		add_submenu_page(
 			self::MENU_SLUG_DASHBOARD,
-			__('Settings', 'auto-games-discount-creator'),
-			__('Settings', 'auto-games-discount-creator'),
+			__('Settings', 'uciki-deals-engine'),
+			__('Settings', 'uciki-deals-engine'),
 			'manage_options',
 			self::MENU_SLUG_SETTINGS,
 			[$this, 'renderSettingsPage']
@@ -84,8 +84,8 @@ class AdminSettingsModule extends AbstractModule
 	public function registerSettings(): void
 	{
 		register_setting(
-			'agdc_settings_group',
-			AGDC_SETTINGS_OPTION,
+			'uciki_deals_settings_group',
+			UCIKI_DEALS_SETTINGS_OPTION,
 			[
 				'sanitize_callback' => [$this, 'sanitizeSettings'],
 				'default' => $this->settingsRepository->getDefaults(),
@@ -93,268 +93,268 @@ class AdminSettingsModule extends AbstractModule
 		);
 
 		add_settings_section(
-			'agdc_general_section',
-			__('General', 'auto-games-discount-creator'),
+			'uciki_deals_general_section',
+			__('General', 'uciki-deals-engine'),
 			[$this, 'renderGeneralSection'],
-			'auto-games-discount-creator'
+			'uciki-deals-engine'
 		);
 
 		add_settings_field(
-			'agdc_enabled',
-			__('Enable plugin automation', 'auto-games-discount-creator'),
+			'uciki_deals_enabled',
+			__('Enable plugin automation', 'uciki-deals-engine'),
 			[$this, 'renderEnabledField'],
-			'auto-games-discount-creator',
-			'agdc_general_section'
+			'uciki-deals-engine',
+			'uciki_deals_general_section'
 		);
 
 		add_settings_field(
-			'agdc_dry_run',
-			__('Dry run mode', 'auto-games-discount-creator'),
+			'uciki_deals_dry_run',
+			__('Dry run mode', 'uciki-deals-engine'),
 			[$this, 'renderDryRunField'],
-			'auto-games-discount-creator',
-			'agdc_general_section'
+			'uciki-deals-engine',
+			'uciki_deals_general_section'
 		);
 
 		add_settings_section(
-			'agdc_posting_section',
-			__('Posting', 'auto-games-discount-creator'),
+			'uciki_deals_posting_section',
+			__('Posting', 'uciki-deals-engine'),
 			[$this, 'renderPostingSection'],
-			'auto-games-discount-creator'
+			'uciki-deals-engine'
 		);
 
 		add_settings_field(
-			'agdc_author_id',
-			__('Default post author', 'auto-games-discount-creator'),
+			'uciki_deals_author_id',
+			__('Default post author', 'uciki-deals-engine'),
 			[$this, 'renderAuthorField'],
-			'auto-games-discount-creator',
-			'agdc_posting_section'
+			'uciki-deals-engine',
+			'uciki_deals_posting_section'
 		);
 
 		add_settings_field(
-			'agdc_post_status',
-			__('Default post status', 'auto-games-discount-creator'),
+			'uciki_deals_post_status',
+			__('Default post status', 'uciki-deals-engine'),
 			[$this, 'renderPostStatusField'],
-			'auto-games-discount-creator',
-			'agdc_posting_section'
+			'uciki-deals-engine',
+			'uciki_deals_posting_section'
 		);
 
 		add_settings_field(
-			'agdc_daily_post_time',
-			__('Daily post time', 'auto-games-discount-creator'),
+			'uciki_deals_daily_post_time',
+			__('Daily post time', 'uciki-deals-engine'),
 			[$this, 'renderDailyPostTimeField'],
-			'auto-games-discount-creator',
-			'agdc_posting_section'
+			'uciki-deals-engine',
+			'uciki_deals_posting_section'
 		);
 
 		add_settings_section(
-			'agdc_daily_posting_section',
-			__('Daily Posting', 'auto-games-discount-creator'),
+			'uciki_deals_daily_posting_section',
+			__('Daily Posting', 'uciki-deals-engine'),
 			[$this, 'renderDailyPostingSection'],
-			'auto-games-discount-creator'
+			'uciki-deals-engine'
 		);
 
 		add_settings_field(
-			'agdc_daily_author_id',
-			__('Daily roundup author', 'auto-games-discount-creator'),
+			'uciki_deals_daily_author_id',
+			__('Daily digest author', 'uciki-deals-engine'),
 			[$this, 'renderDailyAuthorField'],
-			'auto-games-discount-creator',
-			'agdc_daily_posting_section'
+			'uciki-deals-engine',
+			'uciki_deals_daily_posting_section'
 		);
 
 		add_settings_field(
-			'agdc_daily_post_status',
-			__('Daily roundup status', 'auto-games-discount-creator'),
+			'uciki_deals_daily_post_status',
+			__('Daily digest status', 'uciki-deals-engine'),
 			[$this, 'renderDailyPostStatusField'],
-			'auto-games-discount-creator',
-			'agdc_daily_posting_section'
+			'uciki-deals-engine',
+			'uciki_deals_daily_posting_section'
 		);
 
 		add_settings_section(
-			'agdc_free_posting_section',
-			__('Free Game Posting', 'auto-games-discount-creator'),
+			'uciki_deals_free_posting_section',
+			__('Free Game Posting', 'uciki-deals-engine'),
 			[$this, 'renderFreePostingSection'],
-			'auto-games-discount-creator'
+			'uciki-deals-engine'
 		);
 
 		add_settings_field(
-			'agdc_free_author_id',
-			__('Free-game author', 'auto-games-discount-creator'),
+			'uciki_deals_free_author_id',
+			__('Free-game author', 'uciki-deals-engine'),
 			[$this, 'renderFreeAuthorField'],
-			'auto-games-discount-creator',
-			'agdc_free_posting_section'
+			'uciki-deals-engine',
+			'uciki_deals_free_posting_section'
 		);
 
 		add_settings_field(
-			'agdc_free_post_status',
-			__('Free-game status', 'auto-games-discount-creator'),
+			'uciki_deals_free_post_status',
+			__('Free-game status', 'uciki-deals-engine'),
 			[$this, 'renderFreePostStatusField'],
-			'auto-games-discount-creator',
-			'agdc_free_posting_section'
+			'uciki-deals-engine',
+			'uciki_deals_free_posting_section'
 		);
 
 		add_settings_section(
-			'agdc_data_model_section',
-			__('Data Model', 'auto-games-discount-creator'),
+			'uciki_deals_data_model_section',
+			__('Data Model', 'uciki-deals-engine'),
 			[$this, 'renderDataModelSection'],
-			'auto-games-discount-creator'
+			'uciki-deals-engine'
 		);
 
 		add_settings_field(
-			'agdc_default_market_target_key',
-			__('Default market target', 'auto-games-discount-creator'),
+			'uciki_deals_default_market_target_key',
+			__('Default market target', 'uciki-deals-engine'),
 			[$this, 'renderDefaultMarketTargetField'],
-			'auto-games-discount-creator',
-			'agdc_data_model_section'
+			'uciki-deals-engine',
+			'uciki_deals_data_model_section'
 		);
 
 		add_settings_field(
-			'agdc_default_discount_store_key',
-			__('Default discount store', 'auto-games-discount-creator'),
+			'uciki_deals_default_discount_store_key',
+			__('Default discount store', 'uciki-deals-engine'),
 			[$this, 'renderDefaultDiscountStoreField'],
-			'auto-games-discount-creator',
-			'agdc_data_model_section'
+			'uciki-deals-engine',
+			'uciki_deals_data_model_section'
 		);
 
 		add_settings_field(
-			'agdc_default_free_store_key',
-			__('Default free-game store', 'auto-games-discount-creator'),
+			'uciki_deals_default_free_store_key',
+			__('Default free-game store', 'uciki-deals-engine'),
 			[$this, 'renderDefaultFreeStoreField'],
-			'auto-games-discount-creator',
-			'agdc_data_model_section'
+			'uciki-deals-engine',
+			'uciki_deals_data_model_section'
 		);
 
 		add_settings_field(
-			'agdc_daily_repeat_window_days',
-			__('Daily repeat window (days)', 'auto-games-discount-creator'),
+			'uciki_deals_daily_repeat_window_days',
+			__('Daily repeat window (days)', 'uciki-deals-engine'),
 			[$this, 'renderDailyRepeatWindowField'],
-			'auto-games-discount-creator',
-			'agdc_data_model_section'
+			'uciki-deals-engine',
+			'uciki_deals_data_model_section'
 		);
 
 		add_settings_field(
-			'agdc_free_repeat_window_days',
-			__('Free-game repeat window (days)', 'auto-games-discount-creator'),
+			'uciki_deals_free_repeat_window_days',
+			__('Free-game repeat window (days)', 'uciki-deals-engine'),
 			[$this, 'renderFreeRepeatWindowField'],
-			'auto-games-discount-creator',
-			'agdc_data_model_section'
+			'uciki-deals-engine',
+			'uciki_deals_data_model_section'
 		);
 
 		add_settings_section(
-			'agdc_source_section',
-			__('Source', 'auto-games-discount-creator'),
+			'uciki_deals_source_section',
+			__('Source', 'uciki-deals-engine'),
 			[$this, 'renderSourceSection'],
-			'auto-games-discount-creator'
+			'uciki-deals-engine'
 		);
 
 		add_settings_field(
-			'agdc_itad_session_token',
-			__('ITAD session token override', 'auto-games-discount-creator'),
+			'uciki_deals_itad_session_token',
+			__('ITAD session token override', 'uciki-deals-engine'),
 			[$this, 'renderItadSessionTokenField'],
-			'auto-games-discount-creator',
-			'agdc_source_section'
+			'uciki-deals-engine',
+			'uciki_deals_source_section'
 		);
 
 		add_settings_field(
-			'agdc_itad_session_cookie',
-			__('ITAD sess2 cookie override', 'auto-games-discount-creator'),
+			'uciki_deals_itad_session_cookie',
+			__('ITAD sess2 cookie override', 'uciki-deals-engine'),
 			[$this, 'renderItadSessionCookieField'],
-			'auto-games-discount-creator',
-			'agdc_source_section'
+			'uciki-deals-engine',
+			'uciki_deals_source_section'
 		);
 
 		add_settings_field(
-			'agdc_itad_visitor_cookie',
-			__('ITAD visitor cookie override', 'auto-games-discount-creator'),
+			'uciki_deals_itad_visitor_cookie',
+			__('ITAD visitor cookie override', 'uciki-deals-engine'),
 			[$this, 'renderItadVisitorCookieField'],
-			'auto-games-discount-creator',
-			'agdc_source_section'
+			'uciki-deals-engine',
+			'uciki_deals_source_section'
 		);
 
 		add_settings_field(
-			'agdc_itad_country_code',
-			__('ITAD country code', 'auto-games-discount-creator'),
+			'uciki_deals_itad_country_code',
+			__('ITAD country code', 'uciki-deals-engine'),
 			[$this, 'renderItadCountryCodeField'],
-			'auto-games-discount-creator',
-			'agdc_source_section'
+			'uciki-deals-engine',
+			'uciki_deals_source_section'
 		);
 
 		add_settings_field(
-			'agdc_itad_currency_code',
-			__('ITAD currency code', 'auto-games-discount-creator'),
+			'uciki_deals_itad_currency_code',
+			__('ITAD currency code', 'uciki-deals-engine'),
 			[$this, 'renderItadCurrencyCodeField'],
-			'auto-games-discount-creator',
-			'agdc_source_section'
+			'uciki-deals-engine',
+			'uciki_deals_source_section'
 		);
 
 		add_settings_field(
-			'agdc_daily_payloads_json',
-			__('Daily payloads JSON', 'auto-games-discount-creator'),
+			'uciki_deals_daily_payloads_json',
+			__('Daily payloads JSON', 'uciki-deals-engine'),
 			[$this, 'renderDailyPayloadsField'],
-			'auto-games-discount-creator',
-			'agdc_source_section'
+			'uciki-deals-engine',
+			'uciki_deals_source_section'
 		);
 
 		add_settings_field(
-			'agdc_hourly_payloads_json',
-			__('Hourly payloads JSON', 'auto-games-discount-creator'),
+			'uciki_deals_hourly_payloads_json',
+			__('Hourly payloads JSON', 'uciki-deals-engine'),
 			[$this, 'renderHourlyPayloadsJsonField'],
-			'auto-games-discount-creator',
-			'agdc_source_section'
+			'uciki-deals-engine',
+			'uciki_deals_source_section'
 		);
 
 		add_settings_section(
-			'agdc_debug_section',
-			__('Debug', 'auto-games-discount-creator'),
+			'uciki_deals_debug_section',
+			__('Debug', 'uciki-deals-engine'),
 			[$this, 'renderDebugSection'],
-			'auto-games-discount-creator'
+			'uciki-deals-engine'
 		);
 
 		add_settings_field(
-			'agdc_last_run',
-			__('Last run', 'auto-games-discount-creator'),
+			'uciki_deals_last_run',
+			__('Last run', 'uciki-deals-engine'),
 			[$this, 'renderLastRunField'],
-			'auto-games-discount-creator',
-			'agdc_debug_section'
+			'uciki-deals-engine',
+			'uciki_deals_debug_section'
 		);
 
 		add_settings_field(
-			'agdc_next_run',
-			__('Next run', 'auto-games-discount-creator'),
+			'uciki_deals_next_run',
+			__('Next run', 'uciki-deals-engine'),
 			[$this, 'renderNextRunField'],
-			'auto-games-discount-creator',
-			'agdc_debug_section'
+			'uciki-deals-engine',
+			'uciki_deals_debug_section'
 		);
 
 		add_settings_field(
-			'agdc_last_error',
-			__('Last error', 'auto-games-discount-creator'),
+			'uciki_deals_last_error',
+			__('Last error', 'uciki-deals-engine'),
 			[$this, 'renderLastErrorField'],
-			'auto-games-discount-creator',
-			'agdc_debug_section'
+			'uciki-deals-engine',
+			'uciki_deals_debug_section'
 		);
 
 		add_settings_field(
-			'agdc_test_fetch',
-			__('Test fetch', 'auto-games-discount-creator'),
+			'uciki_deals_test_fetch',
+			__('Test fetch', 'uciki-deals-engine'),
 			[$this, 'renderTestFetchField'],
-			'auto-games-discount-creator',
-			'agdc_debug_section'
+			'uciki-deals-engine',
+			'uciki_deals_debug_section'
 		);
 
 		add_settings_field(
-			'agdc_run_tasks',
-			__('Run tasks', 'auto-games-discount-creator'),
+			'uciki_deals_run_tasks',
+			__('Run tasks', 'uciki-deals-engine'),
 			[$this, 'renderRunTasksField'],
-			'auto-games-discount-creator',
-			'agdc_debug_section'
+			'uciki-deals-engine',
+			'uciki_deals_debug_section'
 		);
 
 		add_settings_field(
-			'agdc_cleanup_drafts',
-			__('Cleanup drafts', 'auto-games-discount-creator'),
+			'uciki_deals_cleanup_drafts',
+			__('Cleanup drafts', 'uciki-deals-engine'),
 			[$this, 'renderCleanupDraftsField'],
-			'auto-games-discount-creator',
-			'agdc_debug_section'
+			'uciki-deals-engine',
+			'uciki_deals_debug_section'
 		);
 	}
 
@@ -399,8 +399,8 @@ class AdminSettingsModule extends AbstractModule
 		}
 		?>
 		<div class="wrap">
-			<h1><?php esc_html_e('Auto Games Discount Creator', 'auto-games-discount-creator'); ?></h1>
-			<p><?php esc_html_e('Runtime status, manual actions and recent publishing activity.', 'auto-games-discount-creator'); ?></p>
+			<h1><?php esc_html_e('Uciki Deals Engine', 'uciki-deals-engine'); ?></h1>
+			<p><?php esc_html_e('Runtime status, manual actions and recent publishing activity.', 'uciki-deals-engine'); ?></p>
 			<?php $this->renderPageStyles(); ?>
 			<?php $this->renderActionNotice(); ?>
 			<?php $this->renderStatusCards(); ?>
@@ -417,8 +417,8 @@ class AdminSettingsModule extends AbstractModule
 		}
 		?>
 		<div class="wrap">
-			<h1><?php esc_html_e('AGDC Catalog', 'auto-games-discount-creator'); ?></h1>
-			<p><?php esc_html_e('Latest raw games and offers stored in the AGDC tables.', 'auto-games-discount-creator'); ?></p>
+			<h1><?php esc_html_e('Uciki Deals Catalog', 'uciki-deals-engine'); ?></h1>
+			<p><?php esc_html_e('Latest raw games and offers stored in the Uciki Deals tables.', 'uciki-deals-engine'); ?></p>
 			<?php $this->renderPageStyles(); ?>
 			<?php $this->renderActionNotice(); ?>
 			<?php $this->renderCatalogPanel(); ?>
@@ -433,15 +433,15 @@ class AdminSettingsModule extends AbstractModule
 		}
 		?>
 		<div class="wrap">
-			<h1><?php esc_html_e('AGDC Settings', 'auto-games-discount-creator'); ?></h1>
-			<p><?php esc_html_e('settings.json remains the code default. Values saved here override those defaults for this site.', 'auto-games-discount-creator'); ?></p>
+			<h1><?php esc_html_e('Uciki Deals Settings', 'uciki-deals-engine'); ?></h1>
+			<p><?php esc_html_e('settings.json remains the code default. Values saved here override those defaults for this site.', 'uciki-deals-engine'); ?></p>
 			<?php $this->renderPageStyles(); ?>
 			<?php $this->renderTabbedLayoutScript(); ?>
 			<?php $this->renderActionNotice(); ?>
 			<form action="options.php" method="post">
 				<?php
-				settings_fields('agdc_settings_group');
-				do_settings_sections('auto-games-discount-creator');
+				settings_fields('uciki_deals_settings_group');
+				do_settings_sections('uciki-deals-engine');
 				submit_button();
 				?>
 			</form>
@@ -454,7 +454,7 @@ class AdminSettingsModule extends AbstractModule
 		$settings_link = sprintf(
 			'<a href="%s">%s</a>',
 			esc_url($this->buildAdminPageUrl(self::MENU_SLUG_SETTINGS)),
-			esc_html__('Settings', 'auto-games-discount-creator')
+			esc_html__('Settings', 'uciki-deals-engine')
 		);
 
 		array_unshift($actions, $settings_link);
@@ -465,12 +465,12 @@ class AdminSettingsModule extends AbstractModule
 	public function handleTestFetch(): void
 	{
 		if (!current_user_can('manage_options')) {
-			wp_die(esc_html__('You are not allowed to perform this action.', 'auto-games-discount-creator'));
+			wp_die(esc_html__('You are not allowed to perform this action.', 'uciki-deals-engine'));
 		}
 
-		check_admin_referer('agdc_test_fetch');
+		check_admin_referer('uciki_deals_test_fetch');
 
-		$type = sanitize_key($_REQUEST['agdc_test_fetch_type'] ?? 'hourly');
+		$type = sanitize_key($_REQUEST['uciki_deals_test_fetch_type'] ?? 'hourly');
 		if (!in_array($type, ['daily', 'hourly'], true)) {
 			$type = 'hourly';
 		}
@@ -527,12 +527,12 @@ class AdminSettingsModule extends AbstractModule
 	public function handleRunTask(): void
 	{
 		if (!current_user_can('manage_options')) {
-			wp_die(esc_html__('You are not allowed to perform this action.', 'auto-games-discount-creator'));
+			wp_die(esc_html__('You are not allowed to perform this action.', 'uciki-deals-engine'));
 		}
 
-		check_admin_referer('agdc_run_task');
+		check_admin_referer('uciki_deals_run_task');
 
-		$type = sanitize_key($_REQUEST['agdc_run_task_type'] ?? 'daily');
+		$type = sanitize_key($_REQUEST['uciki_deals_run_task_type'] ?? 'daily');
 		$module = new ScheduleModule();
 
 		$notice_type = 'success';
@@ -540,9 +540,9 @@ class AdminSettingsModule extends AbstractModule
 
 		try {
 			if ($type === 'hourly') {
-				$module->startHourlyPostTask();
+				$module->runHourlySchedulerTask();
 			} else {
-				$module->startDailyPostTask();
+				$module->runDailySchedulerTask();
 			}
 
 			$run_state = $this->runtimeStateRepository->getAll()['last_run']['task:' . $type] ?? [];
@@ -564,21 +564,21 @@ class AdminSettingsModule extends AbstractModule
 	public function handleCleanupDrafts(): void
 	{
 		if (!current_user_can('manage_options')) {
-			wp_die(esc_html__('You are not allowed to perform this action.', 'auto-games-discount-creator'));
+			wp_die(esc_html__('You are not allowed to perform this action.', 'uciki-deals-engine'));
 		}
 
-		check_admin_referer('agdc_cleanup_drafts');
+		check_admin_referer('uciki_deals_cleanup_drafts');
 
 		global $wpdb;
 
 		$posts = get_posts(
 			[
-				'post_type' => 'agdc_roundup',
+				'post_type' => UCIKI_DEALS_POST_TYPE_DIGEST,
 				'post_status' => 'draft',
 				'numberposts' => -1,
 				'meta_query' => [
 					[
-						'key' => '_agdc_content_kind',
+						'key' => UCIKI_DEALS_META_CONTENT_KIND,
 						'compare' => 'EXISTS',
 					],
 				],
@@ -596,7 +596,7 @@ class AdminSettingsModule extends AbstractModule
 
 		if ($posts) {
 			$placeholders = implode(', ', array_fill(0, count($posts), '%d'));
-			$table = $wpdb->prefix . 'agdc_generated_posts';
+			$table = $wpdb->prefix . UCIKI_DEALS_TABLE_GENERATED_POSTS;
 			$wpdb->query(
 				$wpdb->prepare(
 					"DELETE FROM {$table} WHERE wp_post_id IN ({$placeholders})",
@@ -607,7 +607,7 @@ class AdminSettingsModule extends AbstractModule
 
 		$this->runtimeStateRepository->markTestResult(
 			'success',
-			sprintf('Deleted %d AGDC draft post(s).', $deleted),
+			sprintf('Deleted %d Uciki Deals draft post(s).', $deleted),
 			[
 				'type' => 'cleanup',
 				'items' => $deleted,
@@ -617,7 +617,7 @@ class AdminSettingsModule extends AbstractModule
 		wp_safe_redirect(
 			$this->buildSettingsPageUrl(
 				'success',
-				sprintf('Deleted %d AGDC draft post(s).', $deleted)
+				sprintf('Deleted %d Uciki Deals draft post(s).', $deleted)
 			)
 		);
 		exit;
@@ -625,44 +625,44 @@ class AdminSettingsModule extends AbstractModule
 
 	public function renderGeneralSection(): void
 	{
-		echo '<span id="agdc_general_section-title"></span>';
-		echo '<p>' . esc_html__('Basic runtime flags for the plugin.', 'auto-games-discount-creator') . '</p>';
+		echo '<span id="uciki_deals_general_section-title"></span>';
+		echo '<p>' . esc_html__('Basic runtime flags for the plugin.', 'uciki-deals-engine') . '</p>';
 	}
 
 	public function renderPostingSection(): void
 	{
-		echo '<span id="agdc_posting_section-title"></span>';
-		echo '<p>' . esc_html__('Global WordPress posting defaults. Taxonomy is generated automatically per market/language, so this section only keeps the shared author, status and daily schedule controls.', 'auto-games-discount-creator') . '</p>';
+		echo '<span id="uciki_deals_posting_section-title"></span>';
+		echo '<p>' . esc_html__('Global WordPress posting defaults. Taxonomy is generated automatically per market/language, so this section only keeps the shared author, status and daily schedule controls.', 'uciki-deals-engine') . '</p>';
 	}
 
 	public function renderDailyPostingSection(): void
 	{
-		echo '<span id="agdc_daily_posting_section-title"></span>';
-		echo '<p>' . esc_html__('Overrides used only for daily roundup posts. Localized category and tag terms are created automatically from the market target, so only author and status stay editable here.', 'auto-games-discount-creator') . '</p>';
+		echo '<span id="uciki_deals_daily_posting_section-title"></span>';
+		echo '<p>' . esc_html__('Overrides used only for daily digest posts. Localized category and tag terms are created automatically from the market target, so only author and status stay editable here.', 'uciki-deals-engine') . '</p>';
 	}
 
 	public function renderFreePostingSection(): void
 	{
-		echo '<span id="agdc_free_posting_section-title"></span>';
-		echo '<p>' . esc_html__('Overrides used only for free-game posts. Localized category and tag terms are created automatically from the market target, so only author and status stay editable here.', 'auto-games-discount-creator') . '</p>';
+		echo '<span id="uciki_deals_free_posting_section-title"></span>';
+		echo '<p>' . esc_html__('Overrides used only for free-game posts. Localized category and tag terms are created automatically from the market target, so only author and status stay editable here.', 'uciki-deals-engine') . '</p>';
 	}
 
 	public function renderDataModelSection(): void
 	{
-		echo '<span id="agdc_data_model_section-title"></span>';
-		echo '<p>' . esc_html__('This section controls market-first behaviour: default market, fallback stores and repeat windows that stop the same game from being reposted too often in the same market.', 'auto-games-discount-creator') . '</p>';
+		echo '<span id="uciki_deals_data_model_section-title"></span>';
+		echo '<p>' . esc_html__('This section controls market-first behaviour: default market, fallback stores and repeat windows that stop the same game from being reposted too often in the same market.', 'uciki-deals-engine') . '</p>';
 	}
 
 	public function renderSourceSection(): void
 	{
-		echo '<span id="agdc_source_section-title"></span>';
-		echo '<p>' . esc_html__('This is the active scraper configuration. The plugin auto-bootstraps an anonymous ITAD session; token and cookie fields below are only manual overrides for debugging. Daily and hourly JSON payload blocks are the runtime source of truth.', 'auto-games-discount-creator') . '</p>';
+		echo '<span id="uciki_deals_source_section-title"></span>';
+		echo '<p>' . esc_html__('This is the active scraper configuration. The plugin auto-bootstraps an anonymous ITAD session; token and cookie fields below are only manual overrides for debugging. Daily and hourly JSON payload blocks are the runtime source of truth.', 'uciki-deals-engine') . '</p>';
 	}
 
 	public function renderDebugSection(): void
 	{
-		echo '<span id="agdc_debug_section-title"></span>';
-		echo '<p>' . esc_html__('Runtime status, latest errors and a safe manual fetch action for quick diagnostics.', 'auto-games-discount-creator') . '</p>';
+		echo '<span id="uciki_deals_debug_section-title"></span>';
+		echo '<p>' . esc_html__('Runtime status, latest errors and a safe manual fetch action for quick diagnostics.', 'uciki-deals-engine') . '</p>';
 	}
 
 	public function renderEnabledField(): void
@@ -670,9 +670,9 @@ class AdminSettingsModule extends AbstractModule
 		$settings = $this->settingsRepository->getAll();
 		printf(
 			'<label><input type="checkbox" name="%1$s[general][enabled]" value="1" %2$s> %3$s</label>',
-			esc_attr(AGDC_SETTINGS_OPTION),
+			esc_attr(UCIKI_DEALS_SETTINGS_OPTION),
 			checked(!empty($settings['general']['enabled']), true, false),
-			esc_html__('Allow scheduled tasks and posting logic to run.', 'auto-games-discount-creator')
+			esc_html__('Allow scheduled tasks and posting logic to run.', 'uciki-deals-engine')
 		);
 	}
 
@@ -681,9 +681,9 @@ class AdminSettingsModule extends AbstractModule
 		$settings = $this->settingsRepository->getAll();
 		printf(
 			'<label><input type="checkbox" name="%1$s[general][dry_run]" value="1" %2$s> %3$s</label>',
-			esc_attr(AGDC_SETTINGS_OPTION),
+			esc_attr(UCIKI_DEALS_SETTINGS_OPTION),
 			checked(!empty($settings['general']['dry_run']), true, false),
-			esc_html__('Keep runtime in safe mode while refactoring.', 'auto-games-discount-creator')
+			esc_html__('Keep runtime in safe mode while refactoring.', 'uciki-deals-engine')
 		);
 	}
 
@@ -701,7 +701,7 @@ class AdminSettingsModule extends AbstractModule
 
 		printf(
 			'<select name="%1$s[posting][author_id]">',
-			esc_attr(AGDC_SETTINGS_OPTION)
+			esc_attr(UCIKI_DEALS_SETTINGS_OPTION)
 		);
 
 		foreach ($users as $user) {
@@ -730,13 +730,13 @@ class AdminSettingsModule extends AbstractModule
 
 		printf(
 			'<select name="%1$s[posting][category_id]">',
-			esc_attr(AGDC_SETTINGS_OPTION)
+			esc_attr(UCIKI_DEALS_SETTINGS_OPTION)
 		);
 
 		printf(
 			'<option value="0" %1$s>%2$s</option>',
 			selected($selected_category_id, 0, false),
-			esc_html__('No category', 'auto-games-discount-creator')
+			esc_html__('No category', 'uciki-deals-engine')
 		);
 
 		foreach ($categories as $category) {
@@ -756,7 +756,7 @@ class AdminSettingsModule extends AbstractModule
 		$settings = $this->settingsRepository->getAll();
 		printf(
 			'<textarea class="large-text" rows="3" name="%1$s[posting][tags]">%2$s</textarea>',
-			esc_attr(AGDC_SETTINGS_OPTION),
+			esc_attr(UCIKI_DEALS_SETTINGS_OPTION),
 			esc_textarea((string) $settings['posting']['tags'])
 		);
 	}
@@ -765,19 +765,19 @@ class AdminSettingsModule extends AbstractModule
 	{
 		$settings = $this->settingsRepository->getAll();
 		$selected = (string) ($settings['posting']['post_status'] ?? 'draft');
-		printf('<select name="%1$s[posting][post_status]">', esc_attr(AGDC_SETTINGS_OPTION));
+		printf('<select name="%1$s[posting][post_status]">', esc_attr(UCIKI_DEALS_SETTINGS_OPTION));
 		printf(
 			'<option value="draft" %1$s>%2$s</option>',
 			selected($selected, 'draft', false),
-			esc_html__('Draft', 'auto-games-discount-creator')
+			esc_html__('Draft', 'uciki-deals-engine')
 		);
 		printf(
 			'<option value="publish" %1$s>%2$s</option>',
 			selected($selected, 'publish', false),
-			esc_html__('Publish', 'auto-games-discount-creator')
+			esc_html__('Publish', 'uciki-deals-engine')
 		);
 		echo '</select> ';
-		echo '<p class="description">' . esc_html__('Use draft while validating new market targets, slugs and content output.', 'auto-games-discount-creator') . '</p>';
+		echo '<p class="description">' . esc_html__('Use draft while validating new market targets, slugs and content output.', 'uciki-deals-engine') . '</p>';
 	}
 
 	public function renderDailyPostTimeField(): void
@@ -785,7 +785,7 @@ class AdminSettingsModule extends AbstractModule
 		$settings = $this->settingsRepository->getAll();
 		printf(
 			'<input type="time" name="%1$s[posting][daily_post_time]" value="%2$s">',
-			esc_attr(AGDC_SETTINGS_OPTION),
+			esc_attr(UCIKI_DEALS_SETTINGS_OPTION),
 			esc_attr((string) $settings['posting']['daily_post_time'])
 		);
 	}
@@ -847,12 +847,12 @@ class AdminSettingsModule extends AbstractModule
 
 	public function renderDailyRepeatWindowField(): void
 	{
-		$this->renderRepeatWindowField('daily_repeat_window_days', __('Prevent the same game from appearing again in daily roundups for this many days.', 'auto-games-discount-creator'));
+		$this->renderRepeatWindowField('daily_repeat_window_days', __('Prevent the same game from appearing again in daily digests for this many days.', 'uciki-deals-engine'));
 	}
 
 	public function renderFreeRepeatWindowField(): void
 	{
-		$this->renderRepeatWindowField('free_repeat_window_days', __('0 only blocks duplicate free-game posts on the same day. Use a higher number to suppress reposting the same free game across multiple days.', 'auto-games-discount-creator'));
+		$this->renderRepeatWindowField('free_repeat_window_days', __('0 only blocks duplicate free-game posts on the same day. Use a higher number to suppress reposting the same free game across multiple days.', 'uciki-deals-engine'));
 	}
 
 	public function renderItadSessionTokenField(): void
@@ -860,7 +860,7 @@ class AdminSettingsModule extends AbstractModule
 		$settings = $this->settingsRepository->getAll();
 		printf(
 			'<input type="text" class="regular-text code" name="%1$s[source][itad_session_token]" value="%2$s" autocomplete="off">',
-			esc_attr(AGDC_SETTINGS_OPTION),
+			esc_attr(UCIKI_DEALS_SETTINGS_OPTION),
 			esc_attr((string) ($settings['source']['itad_session_token'] ?? ''))
 		);
 	}
@@ -870,7 +870,7 @@ class AdminSettingsModule extends AbstractModule
 		$settings = $this->settingsRepository->getAll();
 		printf(
 			'<input type="text" class="regular-text code" name="%1$s[source][itad_session_cookie]" value="%2$s" autocomplete="off">',
-			esc_attr(AGDC_SETTINGS_OPTION),
+			esc_attr(UCIKI_DEALS_SETTINGS_OPTION),
 			esc_attr((string) ($settings['source']['itad_session_cookie'] ?? ''))
 		);
 	}
@@ -880,7 +880,7 @@ class AdminSettingsModule extends AbstractModule
 		$settings = $this->settingsRepository->getAll();
 		printf(
 			'<input type="text" class="regular-text code" name="%1$s[source][itad_visitor_cookie]" value="%2$s" autocomplete="off">',
-			esc_attr(AGDC_SETTINGS_OPTION),
+			esc_attr(UCIKI_DEALS_SETTINGS_OPTION),
 			esc_attr((string) ($settings['source']['itad_visitor_cookie'] ?? ''))
 		);
 	}
@@ -890,7 +890,7 @@ class AdminSettingsModule extends AbstractModule
 		$settings = $this->settingsRepository->getAll();
 		printf(
 			'<input type="text" class="small-text" maxlength="8" name="%1$s[source][itad_country_code]" value="%2$s">',
-			esc_attr(AGDC_SETTINGS_OPTION),
+			esc_attr(UCIKI_DEALS_SETTINGS_OPTION),
 			esc_attr((string) ($settings['source']['itad_country_code'] ?? 'TR'))
 		);
 	}
@@ -900,7 +900,7 @@ class AdminSettingsModule extends AbstractModule
 		$settings = $this->settingsRepository->getAll();
 		printf(
 			'<input type="text" class="small-text" maxlength="8" name="%1$s[source][itad_currency_code]" value="%2$s">',
-			esc_attr(AGDC_SETTINGS_OPTION),
+			esc_attr(UCIKI_DEALS_SETTINGS_OPTION),
 			esc_attr((string) ($settings['source']['itad_currency_code'] ?? 'TRY'))
 		);
 	}
@@ -924,9 +924,9 @@ class AdminSettingsModule extends AbstractModule
 		$daily = $last_run['task:daily'] ?? [];
 
 		echo '<div>';
-		echo '<p><strong>' . esc_html__('Hourly', 'auto-games-discount-creator') . ':</strong> ' . esc_html($this->formatRunState($hourly)) . '</p>';
+		echo '<p><strong>' . esc_html__('Hourly', 'uciki-deals-engine') . ':</strong> ' . esc_html($this->formatRunState($hourly)) . '</p>';
 		echo '<p>' . esc_html($this->formatSelectionState($hourly)) . '</p>';
-		echo '<p><strong>' . esc_html__('Daily', 'auto-games-discount-creator') . ':</strong> ' . esc_html($this->formatRunState($daily)) . '</p>';
+		echo '<p><strong>' . esc_html__('Daily', 'uciki-deals-engine') . ':</strong> ' . esc_html($this->formatRunState($daily)) . '</p>';
 		echo '<p>' . esc_html($this->formatSelectionState($daily)) . '</p>';
 		echo '</div>';
 	}
@@ -937,7 +937,7 @@ class AdminSettingsModule extends AbstractModule
 		$last_error = $state['last_error'];
 
 		if (empty($last_error)) {
-			echo '<p>' . esc_html__('No runtime errors recorded yet.', 'auto-games-discount-creator') . '</p>';
+			echo '<p>' . esc_html__('No runtime errors recorded yet.', 'uciki-deals-engine') . '</p>';
 			return;
 		}
 
@@ -951,12 +951,12 @@ class AdminSettingsModule extends AbstractModule
 
 	public function renderNextRunField(): void
 	{
-		$hourly = wp_next_scheduled('startScheduleHourlyPost');
-		$daily = wp_next_scheduled('startDailyPostTask');
+		$hourly = wp_next_scheduled(UCIKI_DEALS_HOOK_HOURLY_SCHEDULER);
+		$daily = wp_next_scheduled(UCIKI_DEALS_HOOK_DAILY_SCHEDULER);
 
 		echo '<div>';
-		echo '<p><strong>' . esc_html__('Hourly', 'auto-games-discount-creator') . ':</strong> ' . esc_html($this->formatTimestamp($hourly)) . '</p>';
-		echo '<p><strong>' . esc_html__('Daily', 'auto-games-discount-creator') . ':</strong> ' . esc_html($this->formatTimestamp($daily)) . '</p>';
+		echo '<p><strong>' . esc_html__('Hourly', 'uciki-deals-engine') . ':</strong> ' . esc_html($this->formatTimestamp($hourly)) . '</p>';
+		echo '<p><strong>' . esc_html__('Daily', 'uciki-deals-engine') . ':</strong> ' . esc_html($this->formatTimestamp($daily)) . '</p>';
 		echo '</div>';
 	}
 
@@ -965,17 +965,17 @@ class AdminSettingsModule extends AbstractModule
 		$state = $this->runtimeStateRepository->getAll();
 		$last_test = $state['last_test'];
 		$hourly_url = wp_nonce_url(
-			admin_url('admin-post.php?action=agdc_test_fetch&agdc_test_fetch_type=hourly'),
-			'agdc_test_fetch'
+			admin_url('admin-post.php?action=uciki_deals_test_fetch&uciki_deals_test_fetch_type=hourly'),
+			'uciki_deals_test_fetch'
 		);
 		$daily_url = wp_nonce_url(
-			admin_url('admin-post.php?action=agdc_test_fetch&agdc_test_fetch_type=daily'),
-			'agdc_test_fetch'
+			admin_url('admin-post.php?action=uciki_deals_test_fetch&uciki_deals_test_fetch_type=daily'),
+			'uciki_deals_test_fetch'
 		);
 		?>
 		<p>
-			<a class="button button-secondary" href="<?php echo esc_url($hourly_url); ?>"><?php esc_html_e('Run Hourly Test', 'auto-games-discount-creator'); ?></a>
-			<a class="button button-secondary" href="<?php echo esc_url($daily_url); ?>"><?php esc_html_e('Run Daily Test', 'auto-games-discount-creator'); ?></a>
+			<a class="button button-secondary" href="<?php echo esc_url($hourly_url); ?>"><?php esc_html_e('Run Hourly Test', 'uciki-deals-engine'); ?></a>
+			<a class="button button-secondary" href="<?php echo esc_url($daily_url); ?>"><?php esc_html_e('Run Daily Test', 'uciki-deals-engine'); ?></a>
 		</p>
 		<?php
 
@@ -993,29 +993,29 @@ class AdminSettingsModule extends AbstractModule
 	public function renderRunTasksField(): void
 	{
 		$hourly_url = wp_nonce_url(
-			admin_url('admin-post.php?action=agdc_run_task&agdc_run_task_type=hourly'),
-			'agdc_run_task'
+			admin_url('admin-post.php?action=uciki_deals_run_task&uciki_deals_run_task_type=hourly'),
+			'uciki_deals_run_task'
 		);
 		$daily_url = wp_nonce_url(
-			admin_url('admin-post.php?action=agdc_run_task&agdc_run_task_type=daily'),
-			'agdc_run_task'
+			admin_url('admin-post.php?action=uciki_deals_run_task&uciki_deals_run_task_type=daily'),
+			'uciki_deals_run_task'
 		);
 
 		echo '<p>';
-		echo '<a class="button button-primary" href="' . esc_url($hourly_url) . '">' . esc_html__('Run Hourly Post', 'auto-games-discount-creator') . '</a> ';
-		echo '<a class="button button-primary" href="' . esc_url($daily_url) . '">' . esc_html__('Run Daily Post', 'auto-games-discount-creator') . '</a>';
+		echo '<a class="button button-primary" href="' . esc_url($hourly_url) . '">' . esc_html__('Run Hourly Post', 'uciki-deals-engine') . '</a> ';
+		echo '<a class="button button-primary" href="' . esc_url($daily_url) . '">' . esc_html__('Run Daily Post', 'uciki-deals-engine') . '</a>';
 		echo '</p>';
 	}
 
 	public function renderCleanupDraftsField(): void
 	{
 		$cleanup_url = wp_nonce_url(
-			admin_url('admin-post.php?action=agdc_cleanup_drafts'),
-			'agdc_cleanup_drafts'
+			admin_url('admin-post.php?action=uciki_deals_cleanup_drafts'),
+			'uciki_deals_cleanup_drafts'
 		);
 
 		echo '<p>';
-		echo '<a class="button button-secondary" href="' . esc_url($cleanup_url) . '">' . esc_html__('Delete AGDC Draft Posts', 'auto-games-discount-creator') . '</a>';
+		echo '<a class="button button-secondary" href="' . esc_url($cleanup_url) . '">' . esc_html__('Delete Uciki Deals Draft Posts', 'uciki-deals-engine') . '</a>';
 		echo '</p>';
 	}
 
@@ -1025,13 +1025,13 @@ class AdminSettingsModule extends AbstractModule
 
 		$settings = $this->settingsRepository->getAll();
 		$selected = (string) ($settings['data_model'][$settingKey] ?? '');
-		$table = $wpdb->prefix . 'agdc_market_targets';
+		$table = $wpdb->prefix . UCIKI_DEALS_TABLE_MARKET_TARGETS;
 		$targets = $wpdb->get_results(
 			"SELECT market_key, country_code, language_code, default_currency_code FROM {$table} ORDER BY market_key",
 			ARRAY_A
 		);
 
-		printf('<select name="%1$s[data_model][%2$s]">', esc_attr(AGDC_SETTINGS_OPTION), esc_attr($settingKey));
+		printf('<select name="%1$s[data_model][%2$s]">', esc_attr(UCIKI_DEALS_SETTINGS_OPTION), esc_attr($settingKey));
 		foreach ($targets as $target) {
 			$label = sprintf(
 				'%s (%s / %s / %s)',
@@ -1056,7 +1056,7 @@ class AdminSettingsModule extends AbstractModule
 		$payloads = $settings['source'][$settingsKey] ?? [];
 		printf(
 			'<textarea class="large-text code" rows="12" name="%1$s[source][%2$s]">%3$s</textarea>',
-			esc_attr(AGDC_SETTINGS_OPTION),
+			esc_attr(UCIKI_DEALS_SETTINGS_OPTION),
 			esc_attr($fieldName),
 			esc_textarea(wp_json_encode($payloads, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES))
 		);
@@ -1068,13 +1068,13 @@ class AdminSettingsModule extends AbstractModule
 
 		$settings = $this->settingsRepository->getAll();
 		$selected = (string) ($settings['data_model'][$settingKey] ?? '');
-		$table = $wpdb->prefix . 'agdc_stores';
+		$table = $wpdb->prefix . UCIKI_DEALS_TABLE_STORES;
 		$stores = $wpdb->get_results(
 			"SELECT store_key, store_name FROM {$table} ORDER BY store_name",
 			ARRAY_A
 		);
 
-		printf('<select name="%1$s[data_model][%2$s]">', esc_attr(AGDC_SETTINGS_OPTION), esc_attr($settingKey));
+		printf('<select name="%1$s[data_model][%2$s]">', esc_attr(UCIKI_DEALS_SETTINGS_OPTION), esc_attr($settingKey));
 		foreach ($stores as $store) {
 			printf(
 				'<option value="%1$s" %2$s>%3$s</option>',
@@ -1092,7 +1092,7 @@ class AdminSettingsModule extends AbstractModule
 		$value = (int) ($settings['data_model'][$settingKey] ?? 7);
 		printf(
 			'<input type="number" class="small-text" min="0" step="1" name="%1$s[data_model][%2$s]" value="%3$d"> <p class="description">%4$s</p>',
-			esc_attr(AGDC_SETTINGS_OPTION),
+			esc_attr(UCIKI_DEALS_SETTINGS_OPTION),
 			esc_attr($settingKey),
 			$value,
 			esc_html($description)
@@ -1126,7 +1126,7 @@ class AdminSettingsModule extends AbstractModule
 			]
 		);
 
-		printf('<select name="%1$s[%2$s][%3$s]">', esc_attr(AGDC_SETTINGS_OPTION), esc_attr($groupKey), esc_attr($fieldKey));
+		printf('<select name="%1$s[%2$s][%3$s]">', esc_attr(UCIKI_DEALS_SETTINGS_OPTION), esc_attr($groupKey), esc_attr($fieldKey));
 		foreach ($users as $user) {
 			printf(
 				'<option value="%1$d" %2$s>%3$s</option>',
@@ -1150,8 +1150,8 @@ class AdminSettingsModule extends AbstractModule
 			]
 		);
 
-		printf('<select name="%1$s[%2$s][%3$s]">', esc_attr(AGDC_SETTINGS_OPTION), esc_attr($groupKey), esc_attr($fieldKey));
-		printf('<option value="0" %1$s>%2$s</option>', selected($selected_category_id, 0, false), esc_html__('No category', 'auto-games-discount-creator'));
+		printf('<select name="%1$s[%2$s][%3$s]">', esc_attr(UCIKI_DEALS_SETTINGS_OPTION), esc_attr($groupKey), esc_attr($fieldKey));
+		printf('<option value="0" %1$s>%2$s</option>', selected($selected_category_id, 0, false), esc_html__('No category', 'uciki-deals-engine'));
 		foreach ($categories as $category) {
 			printf(
 				'<option value="%1$d" %2$s>%3$s</option>',
@@ -1168,7 +1168,7 @@ class AdminSettingsModule extends AbstractModule
 		$settings = $this->settingsRepository->getAll();
 		printf(
 			'<textarea class="large-text" rows="3" name="%1$s[%2$s][tags]">%3$s</textarea>',
-			esc_attr(AGDC_SETTINGS_OPTION),
+			esc_attr(UCIKI_DEALS_SETTINGS_OPTION),
 			esc_attr($groupKey),
 			esc_textarea((string) ($settings[$groupKey]['tags'] ?? ''))
 		);
@@ -1178,9 +1178,9 @@ class AdminSettingsModule extends AbstractModule
 	{
 		$settings = $this->settingsRepository->getAll();
 		$selected = (string) ($settings[$groupKey]['post_status'] ?? 'draft');
-		printf('<select name="%1$s[%2$s][post_status]">', esc_attr(AGDC_SETTINGS_OPTION), esc_attr($groupKey));
-		printf('<option value="draft" %1$s>%2$s</option>', selected($selected, 'draft', false), esc_html__('Draft', 'auto-games-discount-creator'));
-		printf('<option value="publish" %1$s>%2$s</option>', selected($selected, 'publish', false), esc_html__('Publish', 'auto-games-discount-creator'));
+		printf('<select name="%1$s[%2$s][post_status]">', esc_attr(UCIKI_DEALS_SETTINGS_OPTION), esc_attr($groupKey));
+		printf('<option value="draft" %1$s>%2$s</option>', selected($selected, 'draft', false), esc_html__('Draft', 'uciki-deals-engine'));
+		printf('<option value="publish" %1$s>%2$s</option>', selected($selected, 'publish', false), esc_html__('Publish', 'uciki-deals-engine'));
 		echo '</select>';
 	}
 
@@ -1194,13 +1194,13 @@ class AdminSettingsModule extends AbstractModule
 			}
 		}
 
-		return $parts ? implode(' | ', $parts) : __('No selection stats yet.', 'auto-games-discount-creator');
+		return $parts ? implode(' | ', $parts) : __('No selection stats yet.', 'uciki-deals-engine');
 	}
 
 	private function formatTimestamp($timestamp): string
 	{
 		if (empty($timestamp) || !is_numeric($timestamp)) {
-			return __('Not scheduled', 'auto-games-discount-creator');
+			return __('Not scheduled', 'uciki-deals-engine');
 		}
 
 		return wp_date('Y-m-d H:i:s', (int) $timestamp);
@@ -1210,45 +1210,45 @@ class AdminSettingsModule extends AbstractModule
 	{
 		?>
 		<style>
-			.agdc-card-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px;max-width:1100px;margin:16px 0 24px}
-			.agdc-card{background:#fff;border:1px solid #dcdcde;border-radius:8px;padding:16px}
-			.agdc-card h2,.agdc-card h3{margin:0 0 10px}
-			.agdc-kpi-label{font-size:12px;color:#50575e;text-transform:uppercase}
-			.agdc-kpi-value{font-size:20px;font-weight:600;margin-top:8px}
-			.agdc-quick-actions{display:flex;flex-wrap:wrap;gap:8px;margin:0}
-			.agdc-quick-actions .button{margin:0}
-			.agdc-section-nav{display:flex;flex-wrap:wrap;gap:8px;margin:0}
-			.agdc-section-nav a{text-decoration:none}
-			.agdc-note{margin-top:8px;color:#50575e}
-			.agdc-tab-panels{max-width:1100px}
-			.agdc-tab-panel{display:none}
-			.agdc-tab-panel.is-active{display:block}
-			.agdc-tab-panel > h2:first-child{margin-top:0}
-			.agdc-tab-panel .form-table:last-of-type{margin-bottom:0}
-			.agdc-tabs{margin:8px 0 16px;max-width:1100px}
-			.agdc-tabs .nav-tab{cursor:pointer}
+			.uciki_deals-card-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px;max-width:1100px;margin:16px 0 24px}
+			.uciki_deals-card{background:#fff;border:1px solid #dcdcde;border-radius:8px;padding:16px}
+			.uciki_deals-card h2,.uciki_deals-card h3{margin:0 0 10px}
+			.uciki_deals-kpi-label{font-size:12px;color:#50575e;text-transform:uppercase}
+			.uciki_deals-kpi-value{font-size:20px;font-weight:600;margin-top:8px}
+			.uciki_deals-quick-actions{display:flex;flex-wrap:wrap;gap:8px;margin:0}
+			.uciki_deals-quick-actions .button{margin:0}
+			.uciki_deals-section-nav{display:flex;flex-wrap:wrap;gap:8px;margin:0}
+			.uciki_deals-section-nav a{text-decoration:none}
+			.uciki_deals-note{margin-top:8px;color:#50575e}
+			.uciki_deals-tab-panels{max-width:1100px}
+			.uciki_deals-tab-panel{display:none}
+			.uciki_deals-tab-panel.is-active{display:block}
+			.uciki_deals-tab-panel > h2:first-child{margin-top:0}
+			.uciki_deals-tab-panel .form-table:last-of-type{margin-bottom:0}
+			.uciki_deals-tabs{margin:8px 0 16px;max-width:1100px}
+			.uciki_deals-tabs .nav-tab{cursor:pointer}
 			.form-table td p.description{max-width:720px}
 			.form-table textarea.code{min-height:180px}
 			.wrap .form-table{background:#fff;border:1px solid #dcdcde;border-radius:8px;margin:0 0 20px}
 			.wrap .form-table th,.wrap .form-table td{padding:16px}
-			.agdc-tab-panels h2{margin-top:28px;padding-top:12px;border-top:1px solid #dcdcde}
-			.agdc-card h2{margin-top:0;padding-top:0;border-top:0}
-			.agdc-inline-code{font-family:monospace}
-			.agdc-table-wrap{overflow:auto;max-width:1100px}
-			.agdc-table{width:100%;border-collapse:collapse}
-			.agdc-table th,.agdc-table td{padding:10px 12px;border-top:1px solid #dcdcde;text-align:left;vertical-align:top}
-			.agdc-table thead th{border-top:0;font-size:12px;text-transform:uppercase;color:#50575e}
-			.agdc-pill{display:inline-block;padding:4px 8px;border-radius:999px;background:#eef4ff;color:#1d4ed8;font-size:12px;font-weight:600}
-			.agdc-muted{color:#50575e}
-			.agdc-filters{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:0 0 12px}
-			.agdc-filters input[type="search"],.agdc-filters select{min-width:180px}
-			#agdc_general_section-title,
-			#agdc_posting_section-title,
-			#agdc_daily_posting_section-title,
-			#agdc_free_posting_section-title,
-			#agdc_data_model_section-title,
-			#agdc_source_section-title,
-			#agdc_debug_section-title{display:block;position:relative;top:-72px;visibility:hidden}
+			.uciki_deals-tab-panels h2{margin-top:28px;padding-top:12px;border-top:1px solid #dcdcde}
+			.uciki_deals-card h2{margin-top:0;padding-top:0;border-top:0}
+			.uciki_deals-inline-code{font-family:monospace}
+			.uciki_deals-table-wrap{overflow:auto;max-width:1100px}
+			.uciki_deals-table{width:100%;border-collapse:collapse}
+			.uciki_deals-table th,.uciki_deals-table td{padding:10px 12px;border-top:1px solid #dcdcde;text-align:left;vertical-align:top}
+			.uciki_deals-table thead th{border-top:0;font-size:12px;text-transform:uppercase;color:#50575e}
+			.uciki_deals-pill{display:inline-block;padding:4px 8px;border-radius:999px;background:#eef4ff;color:#1d4ed8;font-size:12px;font-weight:600}
+			.uciki_deals-muted{color:#50575e}
+			.uciki_deals-filters{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:0 0 12px}
+			.uciki_deals-filters input[type="search"],.uciki_deals-filters select{min-width:180px}
+			#uciki_deals_general_section-title,
+			#uciki_deals_posting_section-title,
+			#uciki_deals_daily_posting_section-title,
+			#uciki_deals_free_posting_section-title,
+			#uciki_deals_data_model_section-title,
+			#uciki_deals_source_section-title,
+			#uciki_deals_debug_section-title{display:block;position:relative;top:-72px;visibility:hidden}
 		</style>
 		<?php
 	}
@@ -1287,12 +1287,12 @@ class AdminSettingsModule extends AbstractModule
 				}
 
 				const panelsHost = document.createElement('div');
-				panelsHost.className = 'agdc-tab-panels';
+				panelsHost.className = 'uciki_deals-tab-panels';
 				const panels = {};
 
 				Object.keys(tabLabels).forEach(function (key) {
 					const panel = document.createElement('div');
-					panel.className = 'agdc-tab-panel';
+					panel.className = 'uciki_deals-tab-panel';
 					panel.dataset.tab = key;
 					panels[key] = panel;
 					panelsHost.appendChild(panel);
@@ -1329,7 +1329,7 @@ class AdminSettingsModule extends AbstractModule
 				form.appendChild(panelsHost);
 
 				const nav = document.createElement('nav');
-				nav.className = 'nav-tab-wrapper agdc-tabs';
+				nav.className = 'nav-tab-wrapper uciki_deals-tabs';
 
 				function activateTab(tabKey) {
 					Object.values(panels).forEach(function (panel) {
@@ -1338,14 +1338,14 @@ class AdminSettingsModule extends AbstractModule
 					nav.querySelectorAll('.nav-tab').forEach(function (tab) {
 						tab.classList.toggle('nav-tab-active', tab.dataset.tab === tabKey);
 					});
-					window.location.hash = 'agdc-tab-' + tabKey;
+					window.location.hash = 'uciki_deals-tab-' + tabKey;
 				}
 
 				Object.entries(tabLabels).forEach(function (entry) {
 					const key = entry[0];
 					const label = entry[1];
 					const tab = document.createElement('a');
-					tab.href = '#agdc-tab-' + key;
+					tab.href = '#uciki_deals-tab-' + key;
 					tab.className = 'nav-tab';
 					tab.dataset.tab = key;
 					tab.textContent = label;
@@ -1358,17 +1358,17 @@ class AdminSettingsModule extends AbstractModule
 
 				form.insertBefore(nav, panelsHost);
 
-				document.querySelectorAll('[data-agdc-tab-target]').forEach(function (link) {
+				document.querySelectorAll('[data-uciki_deals-tab-target]').forEach(function (link) {
 					link.addEventListener('click', function (event) {
 						event.preventDefault();
-						const target = link.getAttribute('data-agdc-tab-target');
+						const target = link.getAttribute('data-uciki_deals-tab-target');
 						if (target && Object.prototype.hasOwnProperty.call(tabLabels, target)) {
 							activateTab(target);
 						}
 					});
 				});
 
-				const initialHash = window.location.hash.replace('#agdc-tab-', '');
+				const initialHash = window.location.hash.replace('#uciki_deals-tab-', '');
 				const initialTab = Object.prototype.hasOwnProperty.call(tabLabels, initialHash) ? initialHash : 'general';
 				activateTab(initialTab);
 			});
@@ -1378,12 +1378,12 @@ class AdminSettingsModule extends AbstractModule
 
 	private function renderActionNotice(): void
 	{
-		$notice_message = sanitize_text_field(wp_unslash($_GET['agdc_notice'] ?? ''));
+		$notice_message = sanitize_text_field(wp_unslash($_GET['uciki_deals_notice'] ?? ''));
 		if ($notice_message === '') {
 			return;
 		}
 
-		$notice_type = sanitize_key($_GET['agdc_notice_type'] ?? 'success');
+		$notice_type = sanitize_key($_GET['uciki_deals_notice_type'] ?? 'success');
 		$css_class = $notice_type === 'error' ? 'notice notice-error' : 'notice notice-success is-dismissible';
 
 		printf(
@@ -1396,36 +1396,36 @@ class AdminSettingsModule extends AbstractModule
 	private function renderQuickActionsPanel(): void
 	{
 		$hourly_run_url = wp_nonce_url(
-			admin_url('admin-post.php?action=agdc_run_task&agdc_run_task_type=hourly'),
-			'agdc_run_task'
+			admin_url('admin-post.php?action=uciki_deals_run_task&uciki_deals_run_task_type=hourly'),
+			'uciki_deals_run_task'
 		);
 		$daily_run_url = wp_nonce_url(
-			admin_url('admin-post.php?action=agdc_run_task&agdc_run_task_type=daily'),
-			'agdc_run_task'
+			admin_url('admin-post.php?action=uciki_deals_run_task&uciki_deals_run_task_type=daily'),
+			'uciki_deals_run_task'
 		);
 		$hourly_test_url = wp_nonce_url(
-			admin_url('admin-post.php?action=agdc_test_fetch&agdc_test_fetch_type=hourly'),
-			'agdc_test_fetch'
+			admin_url('admin-post.php?action=uciki_deals_test_fetch&uciki_deals_test_fetch_type=hourly'),
+			'uciki_deals_test_fetch'
 		);
 		$daily_test_url = wp_nonce_url(
-			admin_url('admin-post.php?action=agdc_test_fetch&agdc_test_fetch_type=daily'),
-			'agdc_test_fetch'
+			admin_url('admin-post.php?action=uciki_deals_test_fetch&uciki_deals_test_fetch_type=daily'),
+			'uciki_deals_test_fetch'
 		);
 		$cleanup_url = wp_nonce_url(
-			admin_url('admin-post.php?action=agdc_cleanup_drafts'),
-			'agdc_cleanup_drafts'
+			admin_url('admin-post.php?action=uciki_deals_cleanup_drafts'),
+			'uciki_deals_cleanup_drafts'
 		);
 		?>
-		<div class="agdc-card-grid">
-			<div class="agdc-card">
-				<h2><?php esc_html_e('Quick Actions', 'auto-games-discount-creator'); ?></h2>
-				<p class="agdc-note"><?php esc_html_e('Run the two automation flows, fetch-only diagnostics or cleanup without leaving this page.', 'auto-games-discount-creator'); ?></p>
-				<p class="agdc-quick-actions">
-					<a class="button button-primary" href="<?php echo esc_url($hourly_run_url); ?>"><?php esc_html_e('Run Hourly Post', 'auto-games-discount-creator'); ?></a>
-					<a class="button button-primary" href="<?php echo esc_url($daily_run_url); ?>"><?php esc_html_e('Run Daily Post', 'auto-games-discount-creator'); ?></a>
-					<a class="button button-secondary" href="<?php echo esc_url($hourly_test_url); ?>"><?php esc_html_e('Run Hourly Test', 'auto-games-discount-creator'); ?></a>
-					<a class="button button-secondary" href="<?php echo esc_url($daily_test_url); ?>"><?php esc_html_e('Run Daily Test', 'auto-games-discount-creator'); ?></a>
-					<a class="button button-secondary" href="<?php echo esc_url($cleanup_url); ?>"><?php esc_html_e('Delete AGDC Draft Posts', 'auto-games-discount-creator'); ?></a>
+		<div class="uciki_deals-card-grid">
+			<div class="uciki_deals-card">
+				<h2><?php esc_html_e('Quick Actions', 'uciki-deals-engine'); ?></h2>
+				<p class="uciki_deals-note"><?php esc_html_e('Run the two automation flows, fetch-only diagnostics or cleanup without leaving this page.', 'uciki-deals-engine'); ?></p>
+				<p class="uciki_deals-quick-actions">
+					<a class="button button-primary" href="<?php echo esc_url($hourly_run_url); ?>"><?php esc_html_e('Run Hourly Post', 'uciki-deals-engine'); ?></a>
+					<a class="button button-primary" href="<?php echo esc_url($daily_run_url); ?>"><?php esc_html_e('Run Daily Post', 'uciki-deals-engine'); ?></a>
+					<a class="button button-secondary" href="<?php echo esc_url($hourly_test_url); ?>"><?php esc_html_e('Run Hourly Test', 'uciki-deals-engine'); ?></a>
+					<a class="button button-secondary" href="<?php echo esc_url($daily_test_url); ?>"><?php esc_html_e('Run Daily Test', 'uciki-deals-engine'); ?></a>
+					<a class="button button-secondary" href="<?php echo esc_url($cleanup_url); ?>"><?php esc_html_e('Delete Uciki Deals Draft Posts', 'uciki-deals-engine'); ?></a>
 				</p>
 			</div>
 		</div>
@@ -1434,36 +1434,36 @@ class AdminSettingsModule extends AbstractModule
 
 	private function renderObservabilityPanel(): void
 	{
-		$currentPage = max(1, absint($_GET['agdc_generated_page'] ?? 1));
+		$currentPage = max(1, absint($_GET['uciki_deals_generated_page'] ?? 1));
 		$recentPosts = $this->getRecentGeneratedPosts($currentPage, self::GENERATED_POSTS_PER_PAGE);
 		$totalRecentPosts = $this->getRecentGeneratedPostCount();
 		$totalGeneratedPages = max(1, (int) ceil($totalRecentPosts / self::GENERATED_POSTS_PER_PAGE));
 		$marketSummaries = $this->getGeneratedPostSummaries();
 		$marketRuns = $this->getMarketRunStates();
 		?>
-		<div class="agdc-card-grid">
-			<div class="agdc-card">
-				<h2><?php esc_html_e('Recent Generated Posts', 'auto-games-discount-creator'); ?></h2>
-				<p class="agdc-note"><?php esc_html_e('Latest AGDC content written to WordPress, without opening MySQL or phpMyAdmin.', 'auto-games-discount-creator'); ?></p>
-				<div class="agdc-table-wrap">
-					<table class="agdc-table">
+		<div class="uciki_deals-card-grid">
+			<div class="uciki_deals-card">
+				<h2><?php esc_html_e('Recent Generated Posts', 'uciki-deals-engine'); ?></h2>
+				<p class="uciki_deals-note"><?php esc_html_e('Latest Uciki Deals content written to WordPress, without opening MySQL or phpMyAdmin.', 'uciki-deals-engine'); ?></p>
+				<div class="uciki_deals-table-wrap">
+					<table class="uciki_deals-table">
 						<thead>
 							<tr>
-								<th><?php esc_html_e('When', 'auto-games-discount-creator'); ?></th>
-								<th><?php esc_html_e('Market', 'auto-games-discount-creator'); ?></th>
-								<th><?php esc_html_e('Kind', 'auto-games-discount-creator'); ?></th>
-								<th><?php esc_html_e('Post', 'auto-games-discount-creator'); ?></th>
-								<th><?php esc_html_e('Status', 'auto-games-discount-creator'); ?></th>
+								<th><?php esc_html_e('When', 'uciki-deals-engine'); ?></th>
+								<th><?php esc_html_e('Market', 'uciki-deals-engine'); ?></th>
+								<th><?php esc_html_e('Kind', 'uciki-deals-engine'); ?></th>
+								<th><?php esc_html_e('Post', 'uciki-deals-engine'); ?></th>
+								<th><?php esc_html_e('Status', 'uciki-deals-engine'); ?></th>
 							</tr>
 						</thead>
 						<tbody>
 							<?php if ($recentPosts === []) : ?>
-								<tr><td colspan="5" class="agdc-muted"><?php esc_html_e('No generated posts recorded yet.', 'auto-games-discount-creator'); ?></td></tr>
+								<tr><td colspan="5" class="uciki_deals-muted"><?php esc_html_e('No generated posts recorded yet.', 'uciki-deals-engine'); ?></td></tr>
 							<?php else : ?>
 								<?php foreach ($recentPosts as $row) : ?>
 									<tr>
 										<td><?php echo esc_html((string) ($row['created_at'] ?? '')); ?></td>
-										<td><span class="agdc-pill"><?php echo esc_html((string) ($row['market_key'] ?? 'unknown')); ?></span></td>
+										<td><span class="uciki_deals-pill"><?php echo esc_html((string) ($row['market_key'] ?? 'unknown')); ?></span></td>
 										<td><?php echo esc_html((string) ($row['content_kind'] ?? '')); ?></td>
 										<td>
 											<?php if (!empty($row['view_link']) && !empty($row['post_title'])) : ?>
@@ -1479,33 +1479,33 @@ class AdminSettingsModule extends AbstractModule
 						</tbody>
 					</table>
 				</div>
-				<?php $this->renderPagination('agdc_generated_page', $currentPage, $totalGeneratedPages, self::MENU_SLUG_DASHBOARD); ?>
+				<?php $this->renderPagination('uciki_deals_generated_page', $currentPage, $totalGeneratedPages, self::MENU_SLUG_DASHBOARD); ?>
 			</div>
-			<div class="agdc-card">
-				<h2><?php esc_html_e('Market Activity', 'auto-games-discount-creator'); ?></h2>
-				<p class="agdc-note"><?php esc_html_e('Last generated content timestamps per market and the latest recorded selection stats.', 'auto-games-discount-creator'); ?></p>
-				<div class="agdc-table-wrap">
-					<table class="agdc-table">
+			<div class="uciki_deals-card">
+				<h2><?php esc_html_e('Market Activity', 'uciki-deals-engine'); ?></h2>
+				<p class="uciki_deals-note"><?php esc_html_e('Last generated content timestamps per market and the latest recorded selection stats.', 'uciki-deals-engine'); ?></p>
+				<div class="uciki_deals-table-wrap">
+					<table class="uciki_deals-table">
 						<thead>
 							<tr>
-								<th><?php esc_html_e('Market', 'auto-games-discount-creator'); ?></th>
-								<th><?php esc_html_e('Daily', 'auto-games-discount-creator'); ?></th>
-								<th><?php esc_html_e('Free', 'auto-games-discount-creator'); ?></th>
-								<th><?php esc_html_e('Last Daily Run', 'auto-games-discount-creator'); ?></th>
-								<th><?php esc_html_e('Last Hourly Run', 'auto-games-discount-creator'); ?></th>
+								<th><?php esc_html_e('Market', 'uciki-deals-engine'); ?></th>
+								<th><?php esc_html_e('Daily', 'uciki-deals-engine'); ?></th>
+								<th><?php esc_html_e('Free', 'uciki-deals-engine'); ?></th>
+								<th><?php esc_html_e('Last Daily Run', 'uciki-deals-engine'); ?></th>
+								<th><?php esc_html_e('Last Hourly Run', 'uciki-deals-engine'); ?></th>
 							</tr>
 						</thead>
 						<tbody>
 							<?php if ($marketSummaries === []) : ?>
-								<tr><td colspan="5" class="agdc-muted"><?php esc_html_e('No market activity found.', 'auto-games-discount-creator'); ?></td></tr>
+								<tr><td colspan="5" class="uciki_deals-muted"><?php esc_html_e('No market activity found.', 'uciki-deals-engine'); ?></td></tr>
 							<?php else : ?>
 								<?php foreach ($marketSummaries as $marketKey => $summary) : ?>
 									<tr>
-										<td><span class="agdc-pill"><?php echo esc_html($marketKey); ?></span></td>
-										<td><?php echo esc_html($summary['discount_roundup'] ?? ''); ?></td>
+										<td><span class="uciki_deals-pill"><?php echo esc_html($marketKey); ?></span></td>
+										<td><?php echo esc_html($summary[UCIKI_DEALS_CONTENT_KIND_DAILY_DIGEST] ?? ''); ?></td>
 										<td><?php echo esc_html($summary['free_game'] ?? ''); ?></td>
-										<td><?php echo esc_html($marketRuns['daily'][$marketKey] ?? __('No run state yet.', 'auto-games-discount-creator')); ?></td>
-										<td><?php echo esc_html($marketRuns['hourly'][$marketKey] ?? __('No run state yet.', 'auto-games-discount-creator')); ?></td>
+										<td><?php echo esc_html($marketRuns['daily'][$marketKey] ?? __('No run state yet.', 'uciki-deals-engine')); ?></td>
+										<td><?php echo esc_html($marketRuns['hourly'][$marketKey] ?? __('No run state yet.', 'uciki-deals-engine')); ?></td>
 									</tr>
 								<?php endforeach; ?>
 							<?php endif; ?>
@@ -1519,59 +1519,59 @@ class AdminSettingsModule extends AbstractModule
 
 	private function renderCatalogPanel(): void
 	{
-		$currentPage = max(1, absint($_GET['agdc_catalog_page'] ?? 1));
+		$currentPage = max(1, absint($_GET['uciki_deals_catalog_page'] ?? 1));
 		$filters = $this->getCatalogFiltersFromRequest();
 		$latestOffers = $this->getLatestOffers($currentPage, self::OFFERS_PER_PAGE, $filters);
 		$totalOffers = $this->getOfferCount($filters);
 		$totalCatalogPages = max(1, (int) ceil($totalOffers / self::OFFERS_PER_PAGE));
 		$filterOptions = $this->getCatalogFilterOptions();
 		?>
-		<div class="agdc-card-grid">
-			<div class="agdc-card">
-				<h2><?php esc_html_e('Latest Offer Catalog', 'auto-games-discount-creator'); ?></h2>
-				<p class="agdc-note"><?php esc_html_e('Raw game and offer data currently stored in AGDC tables, including store, market, price and last seen time.', 'auto-games-discount-creator'); ?></p>
-				<form method="get" action="<?php echo esc_url(admin_url('admin.php')); ?>" class="agdc-filters">
+		<div class="uciki_deals-card-grid">
+			<div class="uciki_deals-card">
+				<h2><?php esc_html_e('Latest Offer Catalog', 'uciki-deals-engine'); ?></h2>
+				<p class="uciki_deals-note"><?php esc_html_e('Raw game and offer data currently stored in Uciki Deals tables, including store, market, price and last seen time.', 'uciki-deals-engine'); ?></p>
+				<form method="get" action="<?php echo esc_url(admin_url('admin.php')); ?>" class="uciki_deals-filters">
 					<input type="hidden" name="page" value="<?php echo esc_attr(self::MENU_SLUG_CATALOG); ?>">
 					<label>
-						<span class="screen-reader-text"><?php esc_html_e('Search games', 'auto-games-discount-creator'); ?></span>
-						<input type="search" name="agdc_q" value="<?php echo esc_attr($filters['search']); ?>" placeholder="<?php esc_attr_e('Search game title', 'auto-games-discount-creator'); ?>">
+						<span class="screen-reader-text"><?php esc_html_e('Search games', 'uciki-deals-engine'); ?></span>
+						<input type="search" name="uciki_deals_q" value="<?php echo esc_attr($filters['search']); ?>" placeholder="<?php esc_attr_e('Search game title', 'uciki-deals-engine'); ?>">
 					</label>
-					<select name="agdc_market">
-						<option value=""><?php esc_html_e('All markets', 'auto-games-discount-creator'); ?></option>
+					<select name="uciki_deals_market">
+						<option value=""><?php esc_html_e('All markets', 'uciki-deals-engine'); ?></option>
 						<?php foreach ($filterOptions['markets'] as $marketKey) : ?>
 							<option value="<?php echo esc_attr($marketKey); ?>" <?php selected($filters['market'], $marketKey); ?>><?php echo esc_html($marketKey); ?></option>
 						<?php endforeach; ?>
 					</select>
-					<select name="agdc_store">
-						<option value=""><?php esc_html_e('All stores', 'auto-games-discount-creator'); ?></option>
+					<select name="uciki_deals_store">
+						<option value=""><?php esc_html_e('All stores', 'uciki-deals-engine'); ?></option>
 						<?php foreach ($filterOptions['stores'] as $storeName) : ?>
 							<option value="<?php echo esc_attr($storeName); ?>" <?php selected($filters['store'], $storeName); ?>><?php echo esc_html($storeName); ?></option>
 						<?php endforeach; ?>
 					</select>
-					<select name="agdc_kind">
-						<option value=""><?php esc_html_e('All types', 'auto-games-discount-creator'); ?></option>
-						<option value="free" <?php selected($filters['kind'], 'free'); ?>><?php esc_html_e('Free', 'auto-games-discount-creator'); ?></option>
-						<option value="discount" <?php selected($filters['kind'], 'discount'); ?>><?php esc_html_e('Discount', 'auto-games-discount-creator'); ?></option>
+					<select name="uciki_deals_kind">
+						<option value=""><?php esc_html_e('All types', 'uciki-deals-engine'); ?></option>
+						<option value="free" <?php selected($filters['kind'], 'free'); ?>><?php esc_html_e('Free', 'uciki-deals-engine'); ?></option>
+						<option value="discount" <?php selected($filters['kind'], 'discount'); ?>><?php esc_html_e('Discount', 'uciki-deals-engine'); ?></option>
 					</select>
-					<button type="submit" class="button button-secondary"><?php esc_html_e('Filter', 'auto-games-discount-creator'); ?></button>
+					<button type="submit" class="button button-secondary"><?php esc_html_e('Filter', 'uciki-deals-engine'); ?></button>
 				</form>
-				<div class="agdc-table-wrap">
-					<table class="agdc-table">
+				<div class="uciki_deals-table-wrap">
+					<table class="uciki_deals-table">
 						<thead>
 							<tr>
-								<th><?php esc_html_e('Game', 'auto-games-discount-creator'); ?></th>
-								<th><?php esc_html_e('Store', 'auto-games-discount-creator'); ?></th>
-								<th><?php esc_html_e('Market', 'auto-games-discount-creator'); ?></th>
-								<th><?php esc_html_e('Type', 'auto-games-discount-creator'); ?></th>
-								<th><?php esc_html_e('Price', 'auto-games-discount-creator'); ?></th>
-								<th><?php esc_html_e('Discount', 'auto-games-discount-creator'); ?></th>
-								<th><?php esc_html_e('Posts', 'auto-games-discount-creator'); ?></th>
-								<th><?php esc_html_e('Last Seen', 'auto-games-discount-creator'); ?></th>
+								<th><?php esc_html_e('Game', 'uciki-deals-engine'); ?></th>
+								<th><?php esc_html_e('Store', 'uciki-deals-engine'); ?></th>
+								<th><?php esc_html_e('Market', 'uciki-deals-engine'); ?></th>
+								<th><?php esc_html_e('Type', 'uciki-deals-engine'); ?></th>
+								<th><?php esc_html_e('Price', 'uciki-deals-engine'); ?></th>
+								<th><?php esc_html_e('Discount', 'uciki-deals-engine'); ?></th>
+								<th><?php esc_html_e('Posts', 'uciki-deals-engine'); ?></th>
+								<th><?php esc_html_e('Last Seen', 'uciki-deals-engine'); ?></th>
 							</tr>
 						</thead>
 						<tbody>
 							<?php if ($latestOffers === []) : ?>
-								<tr><td colspan="8" class="agdc-muted"><?php esc_html_e('No offer rows found yet.', 'auto-games-discount-creator'); ?></td></tr>
+								<tr><td colspan="8" class="uciki_deals-muted"><?php esc_html_e('No offer rows found yet.', 'uciki-deals-engine'); ?></td></tr>
 							<?php else : ?>
 								<?php foreach ($latestOffers as $row) : ?>
 									<tr>
@@ -1583,8 +1583,8 @@ class AdminSettingsModule extends AbstractModule
 											<?php endif; ?>
 										</td>
 										<td><?php echo esc_html((string) ($row['store_name'] ?? '')); ?></td>
-										<td><span class="agdc-pill"><?php echo esc_html((string) ($row['market_key'] ?? 'global')); ?></span></td>
-										<td><?php echo esc_html(!empty($row['is_free']) ? __('Free', 'auto-games-discount-creator') : (string) ($row['offer_type'] ?? 'discount')); ?></td>
+										<td><span class="uciki_deals-pill"><?php echo esc_html((string) ($row['market_key'] ?? 'global')); ?></span></td>
+										<td><?php echo esc_html(!empty($row['is_free']) ? __('Free', 'uciki-deals-engine') : (string) ($row['offer_type'] ?? 'discount')); ?></td>
 										<td><?php echo esc_html($this->formatOfferPrice($row)); ?></td>
 										<td><?php echo esc_html($this->formatOfferDiscount($row)); ?></td>
 										<td><?php echo wp_kses_post($this->renderOfferLinkedPosts((string) ($row['linked_posts'] ?? ''))); ?></td>
@@ -1595,7 +1595,7 @@ class AdminSettingsModule extends AbstractModule
 						</tbody>
 					</table>
 				</div>
-				<?php $this->renderPagination('agdc_catalog_page', $currentPage, $totalCatalogPages, self::MENU_SLUG_CATALOG); ?>
+				<?php $this->renderPagination('uciki_deals_catalog_page', $currentPage, $totalCatalogPages, self::MENU_SLUG_CATALOG); ?>
 			</div>
 		</div>
 		<?php
@@ -1605,32 +1605,32 @@ class AdminSettingsModule extends AbstractModule
 	{
 		$settings = $this->settingsRepository->getAll();
 		$state = $this->runtimeStateRepository->getAll();
-		$last_error = $state['last_error']['message'] ?? __('None', 'auto-games-discount-creator');
-		$last_test = $state['last_test']['status'] ?? __('not-run', 'auto-games-discount-creator');
-		$hourly_next = wp_next_scheduled('startScheduleHourlyPost');
-		$daily_next = wp_next_scheduled('startDailyPostTask');
+		$last_error = $state['last_error']['message'] ?? __('None', 'uciki-deals-engine');
+		$last_test = $state['last_test']['status'] ?? __('not-run', 'uciki-deals-engine');
+		$hourly_next = wp_next_scheduled(UCIKI_DEALS_HOOK_HOURLY_SCHEDULER);
+		$daily_next = wp_next_scheduled(UCIKI_DEALS_HOOK_DAILY_SCHEDULER);
 		?>
-		<div class="agdc-card-grid">
-			<div class="agdc-card">
-				<div class="agdc-kpi-label"><?php esc_html_e('Automation', 'auto-games-discount-creator'); ?></div>
-				<div class="agdc-kpi-value"><?php echo !empty($settings['general']['enabled']) ? esc_html__('Enabled', 'auto-games-discount-creator') : esc_html__('Disabled', 'auto-games-discount-creator'); ?></div>
+		<div class="uciki_deals-card-grid">
+			<div class="uciki_deals-card">
+				<div class="uciki_deals-kpi-label"><?php esc_html_e('Automation', 'uciki-deals-engine'); ?></div>
+				<div class="uciki_deals-kpi-value"><?php echo !empty($settings['general']['enabled']) ? esc_html__('Enabled', 'uciki-deals-engine') : esc_html__('Disabled', 'uciki-deals-engine'); ?></div>
 			</div>
-			<div class="agdc-card">
-				<div class="agdc-kpi-label"><?php esc_html_e('Dry Run', 'auto-games-discount-creator'); ?></div>
-				<div class="agdc-kpi-value"><?php echo !empty($settings['general']['dry_run']) ? esc_html__('On', 'auto-games-discount-creator') : esc_html__('Off', 'auto-games-discount-creator'); ?></div>
+			<div class="uciki_deals-card">
+				<div class="uciki_deals-kpi-label"><?php esc_html_e('Dry Run', 'uciki-deals-engine'); ?></div>
+				<div class="uciki_deals-kpi-value"><?php echo !empty($settings['general']['dry_run']) ? esc_html__('On', 'uciki-deals-engine') : esc_html__('Off', 'uciki-deals-engine'); ?></div>
 			</div>
-			<div class="agdc-card">
-				<div class="agdc-kpi-label"><?php esc_html_e('Last Test', 'auto-games-discount-creator'); ?></div>
-				<div class="agdc-kpi-value"><?php echo esc_html(is_string($last_test) ? strtoupper($last_test) : 'NOT-RUN'); ?></div>
-				<div class="agdc-note"><?php echo esc_html(wp_html_excerpt((string) $last_error, 120, '...')); ?></div>
+			<div class="uciki_deals-card">
+				<div class="uciki_deals-kpi-label"><?php esc_html_e('Last Test', 'uciki-deals-engine'); ?></div>
+				<div class="uciki_deals-kpi-value"><?php echo esc_html(is_string($last_test) ? strtoupper($last_test) : 'NOT-RUN'); ?></div>
+				<div class="uciki_deals-note"><?php echo esc_html(wp_html_excerpt((string) $last_error, 120, '...')); ?></div>
 			</div>
-			<div class="agdc-card">
-				<div class="agdc-kpi-label"><?php esc_html_e('Next Hourly Run', 'auto-games-discount-creator'); ?></div>
-				<div class="agdc-kpi-value" style="font-size:16px;"><?php echo esc_html($this->formatTimestamp($hourly_next)); ?></div>
+			<div class="uciki_deals-card">
+				<div class="uciki_deals-kpi-label"><?php esc_html_e('Next Hourly Run', 'uciki-deals-engine'); ?></div>
+				<div class="uciki_deals-kpi-value" style="font-size:16px;"><?php echo esc_html($this->formatTimestamp($hourly_next)); ?></div>
 			</div>
-			<div class="agdc-card">
-				<div class="agdc-kpi-label"><?php esc_html_e('Next Daily Run', 'auto-games-discount-creator'); ?></div>
-				<div class="agdc-kpi-value" style="font-size:16px;"><?php echo esc_html($this->formatTimestamp($daily_next)); ?></div>
+			<div class="uciki_deals-card">
+				<div class="uciki_deals-kpi-label"><?php esc_html_e('Next Daily Run', 'uciki-deals-engine'); ?></div>
+				<div class="uciki_deals-kpi-value" style="font-size:16px;"><?php echo esc_html($this->formatTimestamp($daily_next)); ?></div>
 			</div>
 		</div>
 		<?php
@@ -1640,8 +1640,8 @@ class AdminSettingsModule extends AbstractModule
 	{
 		global $wpdb;
 
-		$generatedPostsTable = $wpdb->prefix . 'agdc_generated_posts';
-		$marketTargetsTable = $wpdb->prefix . 'agdc_market_targets';
+		$generatedPostsTable = $wpdb->prefix . UCIKI_DEALS_TABLE_GENERATED_POSTS;
+		$marketTargetsTable = $wpdb->prefix . UCIKI_DEALS_TABLE_MARKET_TARGETS;
 		$perPage = max(1, (int) $perPage);
 		$offset = max(0, ($page - 1) * $perPage);
 
@@ -1677,7 +1677,7 @@ class AdminSettingsModule extends AbstractModule
 	{
 		global $wpdb;
 
-		$generatedPostsTable = $wpdb->prefix . 'agdc_generated_posts';
+		$generatedPostsTable = $wpdb->prefix . UCIKI_DEALS_TABLE_GENERATED_POSTS;
 
 		return (int) $wpdb->get_var(
 			"SELECT COUNT(DISTINCT wp_post_id) FROM {$generatedPostsTable} WHERE wp_post_id IS NOT NULL"
@@ -1688,8 +1688,8 @@ class AdminSettingsModule extends AbstractModule
 	{
 		global $wpdb;
 
-		$generatedPostsTable = $wpdb->prefix . 'agdc_generated_posts';
-		$marketTargetsTable = $wpdb->prefix . 'agdc_market_targets';
+		$generatedPostsTable = $wpdb->prefix . UCIKI_DEALS_TABLE_GENERATED_POSTS;
+		$marketTargetsTable = $wpdb->prefix . UCIKI_DEALS_TABLE_MARKET_TARGETS;
 		$rows = $wpdb->get_results(
 			"SELECT mt.market_key, gp.content_kind, COUNT(*) AS total_rows, MAX(COALESCE(gp.published_at, gp.created_at)) AS last_created
 			FROM {$generatedPostsTable} gp
@@ -1754,11 +1754,11 @@ class AdminSettingsModule extends AbstractModule
 	{
 		global $wpdb;
 
-		$offersTable = $wpdb->prefix . 'agdc_offers';
-		$gamesTable = $wpdb->prefix . 'agdc_games';
-		$storesTable = $wpdb->prefix . 'agdc_stores';
-		$marketTargetsTable = $wpdb->prefix . 'agdc_market_targets';
-		$generatedPostsTable = $wpdb->prefix . 'agdc_generated_posts';
+		$offersTable = $wpdb->prefix . UCIKI_DEALS_TABLE_OFFERS;
+		$gamesTable = $wpdb->prefix . UCIKI_DEALS_TABLE_GAMES;
+		$storesTable = $wpdb->prefix . UCIKI_DEALS_TABLE_STORES;
+		$marketTargetsTable = $wpdb->prefix . UCIKI_DEALS_TABLE_MARKET_TARGETS;
+		$generatedPostsTable = $wpdb->prefix . UCIKI_DEALS_TABLE_GENERATED_POSTS;
 		$perPage = max(1, (int) $perPage);
 		$offset = max(0, ($page - 1) * $perPage);
 		[$whereSql, $whereParams] = $this->buildOfferFilterSql($filters);
@@ -1791,10 +1791,10 @@ class AdminSettingsModule extends AbstractModule
 	{
 		global $wpdb;
 
-		$offersTable = $wpdb->prefix . 'agdc_offers';
-		$gamesTable = $wpdb->prefix . 'agdc_games';
-		$storesTable = $wpdb->prefix . 'agdc_stores';
-		$marketTargetsTable = $wpdb->prefix . 'agdc_market_targets';
+		$offersTable = $wpdb->prefix . UCIKI_DEALS_TABLE_OFFERS;
+		$gamesTable = $wpdb->prefix . UCIKI_DEALS_TABLE_GAMES;
+		$storesTable = $wpdb->prefix . UCIKI_DEALS_TABLE_STORES;
+		$marketTargetsTable = $wpdb->prefix . UCIKI_DEALS_TABLE_MARKET_TARGETS;
 		[$whereSql, $whereParams] = $this->buildOfferFilterSql($filters);
 
 		return (int) $wpdb->get_var(
@@ -1813,10 +1813,10 @@ class AdminSettingsModule extends AbstractModule
 	private function getCatalogFiltersFromRequest(): array
 	{
 		return [
-			'search' => sanitize_text_field(wp_unslash($_GET['agdc_q'] ?? '')),
-			'market' => sanitize_text_field(wp_unslash($_GET['agdc_market'] ?? '')),
-			'store' => sanitize_text_field(wp_unslash($_GET['agdc_store'] ?? '')),
-			'kind' => sanitize_key($_GET['agdc_kind'] ?? ''),
+			'search' => sanitize_text_field(wp_unslash($_GET['uciki_deals_q'] ?? '')),
+			'market' => sanitize_text_field(wp_unslash($_GET['uciki_deals_market'] ?? '')),
+			'store' => sanitize_text_field(wp_unslash($_GET['uciki_deals_store'] ?? '')),
+			'kind' => sanitize_key($_GET['uciki_deals_kind'] ?? ''),
 		];
 	}
 
@@ -1824,9 +1824,9 @@ class AdminSettingsModule extends AbstractModule
 	{
 		global $wpdb;
 
-		$offersTable = $wpdb->prefix . 'agdc_offers';
-		$storesTable = $wpdb->prefix . 'agdc_stores';
-		$marketTargetsTable = $wpdb->prefix . 'agdc_market_targets';
+		$offersTable = $wpdb->prefix . UCIKI_DEALS_TABLE_OFFERS;
+		$storesTable = $wpdb->prefix . UCIKI_DEALS_TABLE_STORES;
+		$marketTargetsTable = $wpdb->prefix . UCIKI_DEALS_TABLE_MARKET_TARGETS;
 
 		$markets = $wpdb->get_col(
 			"SELECT DISTINCT mt.market_key
@@ -1899,7 +1899,7 @@ class AdminSettingsModule extends AbstractModule
 		$regular = $row['regular_price_amount'];
 
 		if (!empty($row['is_free'])) {
-			return sprintf('%s %s', __('Free', 'auto-games-discount-creator'), $currency);
+			return sprintf('%s %s', __('Free', 'uciki-deals-engine'), $currency);
 		}
 
 		if ($sale !== null && $regular !== null && (float) $regular > (float) $sale) {
@@ -1914,7 +1914,7 @@ class AdminSettingsModule extends AbstractModule
 			return sprintf('%s %s', (string) $regular, $currency);
 		}
 
-		return __('Unknown', 'auto-games-discount-creator');
+		return __('Unknown', 'uciki-deals-engine');
 	}
 
 	private function formatOfferDiscount(array $row): string
@@ -1934,7 +1934,7 @@ class AdminSettingsModule extends AbstractModule
 	{
 		$rawLinkedPosts = trim($rawLinkedPosts);
 		if ($rawLinkedPosts === '') {
-			return esc_html__('Not posted yet', 'auto-games-discount-creator');
+			return esc_html__('Not posted yet', 'uciki-deals-engine');
 		}
 
 		$items = [];
@@ -1953,7 +1953,7 @@ class AdminSettingsModule extends AbstractModule
 		}
 
 		if ($items === []) {
-			return esc_html__('Not posted yet', 'auto-games-discount-creator');
+			return esc_html__('Not posted yet', 'uciki-deals-engine');
 		}
 
 		return implode('<br>', $items);
@@ -1964,8 +1964,8 @@ class AdminSettingsModule extends AbstractModule
 		return $this->buildAdminPageUrl(
 			self::MENU_SLUG_DASHBOARD,
 			[
-				'agdc_notice_type' => $noticeType,
-				'agdc_notice' => $noticeMessage,
+				'uciki_deals_notice_type' => $noticeType,
+				'uciki_deals_notice' => $noticeMessage,
 			]
 		);
 	}
@@ -2007,8 +2007,8 @@ class AdminSettingsModule extends AbstractModule
 				'current' => max(1, $currentPage),
 				'total' => max(1, $totalPages),
 				'type' => 'array',
-				'prev_text' => __('« Prev', 'auto-games-discount-creator'),
-				'next_text' => __('Next »', 'auto-games-discount-creator'),
+				'prev_text' => __('« Prev', 'uciki-deals-engine'),
+				'next_text' => __('Next »', 'uciki-deals-engine'),
 			]
 		);
 
@@ -2026,7 +2026,7 @@ class AdminSettingsModule extends AbstractModule
 	private function formatRunState(array $run): string
 	{
 		if (empty($run)) {
-			return __('Never run', 'auto-games-discount-creator');
+			return __('Never run', 'uciki-deals-engine');
 		}
 
 		$parts = [];

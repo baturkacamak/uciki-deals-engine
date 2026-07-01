@@ -6,9 +6,9 @@
  * Time: 22:44
  */
 
-namespace AutoGamesDiscountCreator\Core\Utility;
+namespace UcikiDealsEngine\Core\Utility;
 
-use AutoGamesDiscountCreator\Core\Settings\SettingsRepository;
+use UcikiDealsEngine\Core\Settings\SettingsRepository;
 use Exception;
 
 class GameInformationDatabase
@@ -63,7 +63,7 @@ class GameInformationDatabase
 	}
 
 	/**
-	 * Inserts or updates the game information in the new agdc_games table.
+	 * Inserts or updates the game information in the new uciki_deals_games table.
 	 *
 	 * @throws Exception
 	 */
@@ -71,7 +71,7 @@ class GameInformationDatabase
 	{
 		global $wpdb;
 
-		$table = $wpdb->prefix . 'agdc_games';
+		$table = $wpdb->prefix . UCIKI_DEALS_TABLE_GAMES;
 		$canonical_name = $this->gameTitleNormalizer->normalize((string) $gameInfo['name']);
 		$normalized_name = sanitize_title($canonical_name);
 		$source_url = (string) $gameInfo['url'];
@@ -125,7 +125,7 @@ class GameInformationDatabase
 	{
 		global $wpdb;
 
-		$table = $wpdb->prefix . 'agdc_offers';
+		$table = $wpdb->prefix . UCIKI_DEALS_TABLE_OFFERS;
 		$settings = (new SettingsRepository())->getAll();
 		$market_target = $this->marketTarget ?: $this->resolveMarketTarget((string) ($settings['data_model']['default_market_target_key'] ?? 'tr-tr'));
 		$store_key = $this->resolveStoreKey($gameInfo, $settings);
@@ -217,7 +217,7 @@ class GameInformationDatabase
 	}
 
 	/**
-	 * Stores the historical snapshot of the offer fetched from the source.
+	 * Stores the latest captured snapshot of the offer fetched from the source.
 	 *
 	 * @throws Exception
 	 */
@@ -225,7 +225,7 @@ class GameInformationDatabase
 	{
 		global $wpdb;
 
-		$table = $wpdb->prefix . 'agdc_offer_snapshots';
+		$table = $wpdb->prefix . UCIKI_DEALS_TABLE_OFFER_SNAPSHOTS;
 		$payload = wp_json_encode($gameInfo);
 		$sale_price = isset($gameInfo['price']) ? (float) $gameInfo['price'] : 0.0;
 		$discount_percent = isset($gameInfo['cut']) ? (float) preg_replace('/[^0-9.]/', '', (string) $gameInfo['cut']) : 0.0;
@@ -291,7 +291,7 @@ class GameInformationDatabase
 	{
 		global $wpdb;
 
-		$table = $wpdb->prefix . 'agdc_stores';
+		$table = $wpdb->prefix . UCIKI_DEALS_TABLE_STORES;
 		$store_id = $wpdb->get_var(
 			$wpdb->prepare("SELECT id FROM {$table} WHERE store_key = %s LIMIT 1", $storeKey)
 		);
@@ -303,7 +303,7 @@ class GameInformationDatabase
 	{
 		global $wpdb;
 
-		$table = $wpdb->prefix . 'agdc_market_targets';
+		$table = $wpdb->prefix . UCIKI_DEALS_TABLE_MARKET_TARGETS;
 		$target = $wpdb->get_row(
 			$wpdb->prepare("SELECT * FROM {$table} WHERE market_key = %s LIMIT 1", $marketKey),
 			ARRAY_A

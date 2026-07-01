@@ -6,7 +6,7 @@
  * Time: 23:29
  */
 
-if (!function_exists('agdc_get')) {
+if (!function_exists('uciki_deals_get')) {
 	/**
 	 * Retrieve a value from an array using a path string.
 	 *
@@ -16,7 +16,7 @@ if (!function_exists('agdc_get')) {
 	 *
 	 * @return mixed
 	 */
-	function agdc_get(string $path, array $array, $default = null)
+	function uciki_deals_get(string $path, array $array, $default = null)
 	{
 		$path = explode('/', $path);
 

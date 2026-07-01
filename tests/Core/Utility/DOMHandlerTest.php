@@ -6,7 +6,7 @@
  * Time: 18:13
  */
 
-namespace AutoGamesDiscountCreator\Core\Utility;
+namespace UcikiDealsEngine\Core\Utility;
 
 use DOMNode;
 use DOMNodeList;

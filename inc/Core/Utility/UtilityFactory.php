@@ -6,28 +6,28 @@
  * Time: 17:47
  */
 
-namespace AutoGamesDiscountCreator\Core\Utility;
+namespace UcikiDealsEngine\Core\Utility;
 
-use AutoGamesDiscountCreator\AutoGamesDiscountCreator;
-use AutoGamesDiscountCreator\Core\Utility\Image\EpicCatalogImageLookup;
-use AutoGamesDiscountCreator\Core\Utility\Image\ImageUrlNormalizer;
-use AutoGamesDiscountCreator\Core\Utility\Image\RemoteMetaImageStrategy;
-use AutoGamesDiscountCreator\Core\Utility\Image\Strategy\EpicFreeGamesCatalogImageStrategy;
-use AutoGamesDiscountCreator\Core\Utility\Image\Strategy\EpicStoreCdnImageStrategy;
-use AutoGamesDiscountCreator\Core\Utility\Image\Strategy\ExistingStoreCdnImageStrategy;
-use AutoGamesDiscountCreator\Core\Utility\Image\Strategy\FanaticalImageStrategy;
-use AutoGamesDiscountCreator\Core\Utility\Image\Strategy\GogImageStrategy;
-use AutoGamesDiscountCreator\Core\Utility\Image\Strategy\HumbleAgeCheckImageStrategy;
-use AutoGamesDiscountCreator\Core\Utility\Image\Strategy\HumbleStoreCdnImageStrategy;
-use AutoGamesDiscountCreator\Core\Utility\Image\Strategy\ItadAssetFallbackStrategy;
-use AutoGamesDiscountCreator\Core\Utility\Image\Strategy\SteamImageStrategy;
+use UcikiDealsEngine\UcikiDealsEngine;
+use UcikiDealsEngine\Core\Utility\Image\EpicCatalogImageLookup;
+use UcikiDealsEngine\Core\Utility\Image\ImageUrlNormalizer;
+use UcikiDealsEngine\Core\Utility\Image\RemoteMetaImageStrategy;
+use UcikiDealsEngine\Core\Utility\Image\Strategy\EpicFreeGamesCatalogImageStrategy;
+use UcikiDealsEngine\Core\Utility\Image\Strategy\EpicStoreCdnImageStrategy;
+use UcikiDealsEngine\Core\Utility\Image\Strategy\ExistingStoreCdnImageStrategy;
+use UcikiDealsEngine\Core\Utility\Image\Strategy\FanaticalImageStrategy;
+use UcikiDealsEngine\Core\Utility\Image\Strategy\GogImageStrategy;
+use UcikiDealsEngine\Core\Utility\Image\Strategy\HumbleAgeCheckImageStrategy;
+use UcikiDealsEngine\Core\Utility\Image\Strategy\HumbleStoreCdnImageStrategy;
+use UcikiDealsEngine\Core\Utility\Image\Strategy\ItadAssetFallbackStrategy;
+use UcikiDealsEngine\Core\Utility\Image\Strategy\SteamImageStrategy;
 
 /**
  * Class UtilityFactory
  *
  * This class is responsible for creating instances of utility classes.
  *
- * @package AutoGamesDiscountCreator\Core\Utility
+ * @package         UcikiDealsEngine\Core\Utility
  */
 class UtilityFactory
 {
@@ -66,8 +66,8 @@ class UtilityFactory
 	{
 		$image_retriever = $this->createImageRetriever();
 		$image_url_normalizer = new ImageUrlNormalizer();
-		$settings = AutoGamesDiscountCreator::getInstance()->settings ?? [];
-		$bootstrap = function_exists('get_transient') ? get_transient('agdc_itad_session_bootstrap') : [];
+		$settings = UcikiDealsEngine::getInstance()->settings ?? [];
+		$bootstrap = function_exists('get_transient') ? get_transient('uciki_deals_itad_session_bootstrap') : [];
 		$country_code = 'US';
 		if (is_array($bootstrap) && !empty($bootstrap['itad_country_code'])) {
 			$country_code = (string) $bootstrap['itad_country_code'];

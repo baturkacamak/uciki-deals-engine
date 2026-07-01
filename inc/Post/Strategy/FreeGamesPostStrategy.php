@@ -6,13 +6,13 @@
  * Time: 18:29
  */
 
-namespace AutoGamesDiscountCreator\Post\Strategy;
+namespace UcikiDealsEngine\Post\Strategy;
 
-use AutoGamesDiscountCreator\Core\Settings\MarketTargetRepository;
-use AutoGamesDiscountCreator\Core\Utility\Date;
-use AutoGamesDiscountCreator\Core\Utility\OfferImageResolver;
-use AutoGamesDiscountCreator\Core\Utility\UtilityFactory;
-use AutoGamesDiscountCreator\Core\WordPress\WordPressFunctionsInterface;
+use UcikiDealsEngine\Core\Settings\MarketTargetRepository;
+use UcikiDealsEngine\Core\Utility\Date;
+use UcikiDealsEngine\Core\Utility\OfferImageResolver;
+use UcikiDealsEngine\Core\Utility\UtilityFactory;
+use UcikiDealsEngine\Core\WordPress\WordPressFunctionsInterface;
 class FreeGamesPostStrategy implements PostTypeStrategy
 {
 	/**
@@ -105,7 +105,7 @@ class FreeGamesPostStrategy implements PostTypeStrategy
 		$ctaLabel = $this->copySet['cta_label'] ?? 'Open Store Page';
 
 		$html = '<div class="steam-content-body"><p>' . esc_html($intro) . '</p></div>';
-		$html .= '<p><strong>' . esc_html($this->gameData['name']) . '</strong> ' . esc_html__('şu anda kısa süreliğine ücretsiz.', 'auto-games-discount-creator') . '</p>';
+		$html .= '<p><strong>' . esc_html($this->gameData['name']) . '</strong> ' . esc_html__('şu anda kısa süreliğine ücretsiz.', 'uciki-deals-engine') . '</p>';
 		$html .= '<div class="steam-cards"><div class="ui cards free-game"><div class="ui card">';
 
 		if (!empty($this->gameData['thumbnail_url'])) {
@@ -145,7 +145,7 @@ class FreeGamesPostStrategy implements PostTypeStrategy
 
 	public function getContentKind(): string
 	{
-		return 'free_game';
+		return UCIKI_DEALS_CONTENT_KIND_FREE_GAME;
 	}
 
 	public function getMarketTarget(): array

@@ -4,7 +4,7 @@ if (!defined('ABSPATH')) {
 	exit("Run this file with wp eval-file.\n");
 }
 
-$settings = get_option('agdc_settings', []);
+$settings = get_option('uciki_deals_settings', []);
 if (!is_array($settings)) {
 	$settings = [];
 }
@@ -62,6 +62,6 @@ $settings['source'] = array_merge(
 	]
 );
 
-update_option('agdc_settings', $settings, false);
+update_option('uciki_deals_settings', $settings, false);
 
-echo "Updated agdc_settings.\n";
+echo "Updated uciki_deals_settings.\n";

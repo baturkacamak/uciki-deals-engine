@@ -1,9 +1,9 @@
 <?php
 
-namespace AutoGamesDiscountCreator\Modules;
+namespace UcikiDealsEngine\Modules;
 
-use AutoGamesDiscountCreator\Core\Module\AbstractModule;
-use AutoGamesDiscountCreator\Core\Settings\MarketTargetRepository;
+use UcikiDealsEngine\Core\Module\AbstractModule;
+use UcikiDealsEngine\Core\Settings\MarketTargetRepository;
 
 class SeoModule extends AbstractModule
 {
@@ -147,7 +147,7 @@ class SeoModule extends AbstractModule
 
 	private function getSeoTargetPostId(): int
 	{
-		if (is_singular('agdc_roundup')) {
+		if (is_singular(UCIKI_DEALS_POST_TYPE_DIGEST)) {
 			return (int) get_queried_object_id();
 		}
 
@@ -161,7 +161,7 @@ class SeoModule extends AbstractModule
 			return [];
 		}
 
-		$marketKey = (string) get_post_meta($post->ID, '_agdc_market_key', true);
+		$marketKey = (string) get_post_meta($post->ID, UCIKI_DEALS_META_MARKET_KEY, true);
 		$repo = new MarketTargetRepository();
 		$marketTarget = $marketKey !== '' ? ($repo->findByKey($marketKey) ?: $repo->getDefaultTarget()) : $repo->getDefaultTarget();
 		$locale = strtolower((string) (($marketTarget['language_code'] ?? 'en') . '-' . ($marketTarget['country_code'] ?? 'US')));
@@ -176,8 +176,8 @@ class SeoModule extends AbstractModule
 			'inLanguage' => $locale,
 		];
 
-		if ($post->post_type === 'agdc_roundup') {
-			$snapshot = get_post_meta($post->ID, '_agdc_snapshot_payload', true);
+		if ($post->post_type === UCIKI_DEALS_POST_TYPE_DIGEST) {
+			$snapshot = get_post_meta($post->ID, UCIKI_DEALS_META_SNAPSHOT_PAYLOAD, true);
 			$games = is_array($snapshot['games'] ?? null) ? $snapshot['games'] : [];
 
 			$graph[] = [
@@ -214,7 +214,7 @@ class SeoModule extends AbstractModule
 			}
 		}
 
-		if ($post->post_type === 'agdc_roundup') {
+		if ($post->post_type === UCIKI_DEALS_POST_TYPE_DIGEST) {
 			$graph[] = [
 				'@context' => 'https://schema.org',
 				'@type' => 'BlogPosting',
@@ -252,15 +252,15 @@ class SeoModule extends AbstractModule
 			return null;
 		}
 
-		$marketKey = (string) get_post_meta($post->ID, '_agdc_market_key', true);
+		$marketKey = (string) get_post_meta($post->ID, UCIKI_DEALS_META_MARKET_KEY, true);
 		$repo = new MarketTargetRepository();
 		$marketTarget = $marketKey !== '' ? ($repo->findByKey($marketKey) ?: $repo->getDefaultTarget()) : $repo->getDefaultTarget();
 		$copySet = $repo->getCopySet($marketTarget);
 
-		if ($post->post_type === 'agdc_roundup' && get_post_meta($post->ID, '_agdc_content_kind', true) !== 'free_game') {
-			$snapshot = get_post_meta($post->ID, '_agdc_snapshot_payload', true);
-			$description = is_array($snapshot) ? $this->buildRoundupDescription($snapshot, $copySet, $marketTarget) : '';
-			$image = is_array($snapshot) ? $this->getRoundupImage($snapshot) : '';
+		if ($post->post_type === UCIKI_DEALS_POST_TYPE_DIGEST && get_post_meta($post->ID, UCIKI_DEALS_META_CONTENT_KIND, true) !== UCIKI_DEALS_CONTENT_KIND_FREE_GAME) {
+			$snapshot = get_post_meta($post->ID, UCIKI_DEALS_META_SNAPSHOT_PAYLOAD, true);
+			$description = is_array($snapshot) ? $this->buildDigestDescription($snapshot, $copySet, $marketTarget) : '';
+			$image = is_array($snapshot) ? $this->getDigestImage($snapshot) : '';
 
 			return [
 				'title' => $title,
@@ -271,7 +271,7 @@ class SeoModule extends AbstractModule
 			];
 		}
 
-		if ($post->post_type === 'agdc_roundup' && get_post_meta($post->ID, '_agdc_content_kind', true) === 'free_game') {
+		if ($post->post_type === UCIKI_DEALS_POST_TYPE_DIGEST && get_post_meta($post->ID, UCIKI_DEALS_META_CONTENT_KIND, true) === UCIKI_DEALS_CONTENT_KIND_FREE_GAME) {
 			$description = $this->buildFreeGameDescription($post, $copySet, $marketTarget);
 			$image = $this->getFreeGameImage($post);
 
@@ -287,13 +287,13 @@ class SeoModule extends AbstractModule
 		return null;
 	}
 
-	private function buildRoundupDescription(array $snapshot, array $copySet, array $marketTarget): string
+	private function buildDigestDescription(array $snapshot, array $copySet, array $marketTarget): string
 	{
 		$games = is_array($snapshot['games'] ?? null) ? $snapshot['games'] : [];
 		$count = count($games);
 		$currency = strtoupper((string) ($marketTarget['default_currency_code'] ?? ''));
 		$language = strtolower((string) ($marketTarget['language_code'] ?? 'en'));
-		$featuredGame = $this->getFeaturedRoundupGame($games);
+		$featuredGame = $this->getFeaturedDigestGame($games);
 		$featuredName = is_array($featuredGame) ? (string) ($featuredGame['name'] ?? '') : '';
 		$featuredStore = is_array($featuredGame) ? $this->formatStoreKey((string) ($featuredGame['store_key'] ?? '')) : '';
 		$featuredDiscount = is_array($featuredGame) && isset($featuredGame['cut']) ? (int) round((float) $featuredGame['cut']) : 0;
@@ -323,10 +323,10 @@ class SeoModule extends AbstractModule
 		}
 
 		if ($featuredName !== '') {
-			return trim(sprintf('Daily roundup with %d games. Featured pick: %s at %s with %d%% off. Prices are shown in %s.', $count, $featuredName, $featuredStore ?: 'the store', $featuredDiscount, $currency ?: 'the local currency'));
+			return trim(sprintf('Daily deals digest with %d games. Featured pick: %s at %s with %d%% off. Prices are shown in %s.', $count, $featuredName, $featuredStore ?: 'the store', $featuredDiscount, $currency ?: 'the local currency'));
 		}
 
-		return trim(sprintf('Daily roundup with %d games. Prices are shown in %s.', $count, $currency ?: 'the local currency'));
+		return trim(sprintf('Daily deals digest with %d games. Prices are shown in %s.', $count, $currency ?: 'the local currency'));
 	}
 
 	private function buildFreeGameDescription(\WP_Post $post, array $copySet, array $marketTarget): string
@@ -351,10 +351,10 @@ class SeoModule extends AbstractModule
 		return trim(sprintf('Free game deal for %s. Store: %s. Market pricing reference uses %s.', $title, $store ?: 'unknown', $currency ?: 'the local currency'));
 	}
 
-	private function getRoundupImage(array $snapshot): string
+	private function getDigestImage(array $snapshot): string
 	{
 		$games = is_array($snapshot['games'] ?? null) ? $snapshot['games'] : [];
-		$featuredGame = $this->getFeaturedRoundupGame($games);
+		$featuredGame = $this->getFeaturedDigestGame($games);
 
 		if (is_array($featuredGame)) {
 			$image = (string) ($featuredGame['resolved_image_url'] ?? '');
@@ -475,7 +475,7 @@ class SeoModule extends AbstractModule
 				];
 			}
 
-			$marketKey = (string) get_post_meta($translatedPost->ID, '_agdc_market_key', true);
+			$marketKey = (string) get_post_meta($translatedPost->ID, UCIKI_DEALS_META_MARKET_KEY, true);
 			if ($marketKey === $defaultKey) {
 				return [
 					'hreflang' => 'x-default',
@@ -494,9 +494,9 @@ class SeoModule extends AbstractModule
 		return null;
 	}
 
-	private function getFeaturedRoundupGame(array $games): ?array
+	private function getFeaturedDigestGame(array $games): ?array
 	{
-		if (!class_exists('\AutoGamesDiscountCreator\Post\DailyRoundupSnapshotRenderer')) {
+		if (!class_exists('\UcikiDealsEngine\Post\DailyDigestSnapshotRenderer')) {
 			foreach ($games as $game) {
 				if (is_array($game) && !empty($game['name'])) {
 					return $game;
@@ -506,7 +506,7 @@ class SeoModule extends AbstractModule
 			return null;
 		}
 
-		$renderer = new \AutoGamesDiscountCreator\Post\DailyRoundupSnapshotRenderer();
+		$renderer = new \UcikiDealsEngine\Post\DailyDigestSnapshotRenderer();
 		$featured = $renderer->getFeaturedGameFromSnapshot(['games' => $games]);
 
 		return is_array($featured) ? $featured : null;
@@ -517,21 +517,21 @@ class SeoModule extends AbstractModule
 		unset( $languageCode );
 		$this->ensureUcikiTextdomainLoaded();
 
-		return __( 'Uciki publishes daily game deals, free game alerts, and market-specific roundup posts.', 'uciki' );
+		return __( 'Uciki publishes daily game deals, free game alerts, and market-specific digest posts.', 'uciki-deals-engine' );
 	}
 
 	private function ensureUcikiTextdomainLoaded(): void
 	{
-		if ( is_textdomain_loaded( 'uciki' ) ) {
+		if (is_textdomain_loaded('uciki-deals-engine')) {
 			return;
 		}
 
 		$locale = determine_locale();
-		if ( ! is_string( $locale ) || '' === $locale ) {
+		if (!is_string($locale) || '' === $locale) {
 			$locale = get_locale();
 		}
 
-		load_textdomain( 'uciki', get_template_directory() . '/languages/uciki-' . $locale . '.mo', $locale );
+		load_plugin_textdomain('uciki-deals-engine', false, dirname(UCIKI_DEALS_BASE_FILE) . '/languages/');
 	}
 
 	private function formatStoreKey(string $storeKey): string
@@ -561,16 +561,16 @@ class SeoModule extends AbstractModule
 	private function buildAlternateUrl(\WP_Post $post): string
 	{
 		$baseUrl = untrailingslashit((string) get_option('home'));
-		$marketKey = (string) get_post_meta($post->ID, '_agdc_market_key', true);
+		$marketKey = (string) get_post_meta($post->ID, UCIKI_DEALS_META_MARKET_KEY, true);
 		if ($marketKey === '') {
-			$marketKey = strtolower((string) get_post_meta($post->ID, '_agdc_language_code', true));
+			$marketKey = strtolower((string) get_post_meta($post->ID, UCIKI_DEALS_META_LANGUAGE_CODE, true));
 		}
 
 		if ($baseUrl === '') {
 			$baseUrl = untrailingslashit((string) site_url());
 		}
 
-		if ($post->post_type === 'agdc_roundup' && $marketKey !== '') {
+		if ($post->post_type === UCIKI_DEALS_POST_TYPE_DIGEST && $marketKey !== '') {
 			return $baseUrl . '/' . user_trailingslashit($marketKey . '/' . $post->post_name);
 		}
 
@@ -590,12 +590,12 @@ class SeoModule extends AbstractModule
 			],
 		];
 
-		if ($post->post_type === 'agdc_roundup') {
+		if ($post->post_type === UCIKI_DEALS_POST_TYPE_DIGEST) {
 			$items[] = [
 				'name' => get_the_title($post),
 				'url' => $canonical,
 			];
-			if (get_post_meta($post->ID, '_agdc_content_kind', true) === 'free_game') {
+			if (get_post_meta($post->ID, UCIKI_DEALS_META_CONTENT_KIND, true) === UCIKI_DEALS_CONTENT_KIND_FREE_GAME) {
 				$categories = get_the_category($post->ID);
 				if (!empty($categories) && isset($categories[0]) && $categories[0] instanceof \WP_Term) {
 					array_splice($items, 1, 0, [[

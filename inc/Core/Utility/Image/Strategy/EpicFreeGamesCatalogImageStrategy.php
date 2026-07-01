@@ -1,8 +1,8 @@
 <?php
 
-namespace AutoGamesDiscountCreator\Core\Utility\Image\Strategy;
+namespace UcikiDealsEngine\Core\Utility\Image\Strategy;
 
-use AutoGamesDiscountCreator\Core\Utility\Image\EpicCatalogImageLookup;
+use UcikiDealsEngine\Core\Utility\Image\EpicCatalogImageLookup;
 
 class EpicFreeGamesCatalogImageStrategy implements ImageSourceStrategyInterface
 {

@@ -1,8 +1,8 @@
 <?php
 
-namespace AutoGamesDiscountCreator\Core\Utility;
+namespace UcikiDealsEngine\Core\Utility;
 
-use AutoGamesDiscountCreator\Core\Utility\Image\Strategy\ImageSourceStrategyInterface;
+use UcikiDealsEngine\Core\Utility\Image\Strategy\ImageSourceStrategyInterface;
 
 class OfferImageResolver
 {

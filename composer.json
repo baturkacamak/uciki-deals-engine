@@ -9,8 +9,8 @@
     "ext-intl": "*"
   },
   "scripts": {
-    "csfix": "phpcbf --standard=PSR12 --colors --ignore=./vendor,./rambouillet/unyson/PluginSettings.php,./bootstrap.php ./",
-    "cscheck": "phpcs --standard=PSR12 --colors --ignore=./vendor,./rambouillet/unyson/PluginSettings.php,./bootstrap.php ./",
+    "csfix": "phpcbf --standard=PSR12 --colors --ignore=./vendor,./bootstrap.php ./",
+    "cscheck": "phpcs --standard=PSR12 --colors --ignore=./vendor,./bootstrap.php ./",
     "test": "phpunit tests"
   },
   "require-dev": {
@@ -19,7 +19,7 @@
   },
   "autoload": {
     "psr-4": {
-      "AutoGamesDiscountCreator\\": "inc/"
+      "UcikiDealsEngine\\": "inc/"
     }
   },
   "config": {

@@ -20,27 +20,27 @@ wp rewrite flush
 
 4. Confirm the live site has the expected market targets in plugin settings.
 
-## Backfill existing AGDC content
+## Backfill existing Uciki Deals content
 
 Use the included script to normalize:
 
-- `_agdc_market_key`
-- `_agdc_language_code`
-- `_agdc_site_section`
+- `_uciki_deals_market_key`
+- `_uciki_deals_language_code`
+- `_uciki_deals_site_section`
 - localized categories
 - localized tags
 
 Run it with WP-CLI:
 
 ```bash
-wp eval-file wp-content/plugins/auto-games-discount-creator/bin/backfill-market-seo.php
+wp eval-file wp-content/plugins/uciki-deals-engine/bin/backfill-market-seo.php
 ```
 
 ## After backfill
 
 Check these pages manually:
 
-- one `agdc_roundup` page in each market
+- one `uciki_deals_digest` page in each market
 - one `free_game` post
 
 Verify:

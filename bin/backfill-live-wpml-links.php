@@ -4,7 +4,7 @@ if (!defined('ABSPATH')) {
 	exit("Run this file with wp eval-file.\n");
 }
 
-$wpml = new \AutoGamesDiscountCreator\Core\Integration\WpmlSupport();
+$wpml = new \UcikiDealsEngine\Core\Integration\WpmlSupport();
 if (!$wpml->isAvailable()) {
 	exit("WPML is not active.\n");
 }
@@ -15,9 +15,9 @@ $defaultMarketKey = 'tr-tr';
 $today = current_time('Y-m-d');
 $postMetaTable = $wpdb->postmeta;
 $postTable = $wpdb->posts;
-$generatedPostsTable = $wpdb->prefix . 'agdc_generated_posts';
+$generatedPostsTable = $wpdb->prefix . UCIKI_DEALS_TABLE_GENERATED_POSTS;
 
-$sourceRoundupId = (int) $wpdb->get_var(
+$sourceDigestId = (int) $wpdb->get_var(
 	$wpdb->prepare(
 		"SELECT p.ID
 		FROM {$postTable} p
@@ -29,17 +29,17 @@ $sourceRoundupId = (int) $wpdb->get_var(
 			AND DATE(p.post_date) = %s
 		ORDER BY p.ID DESC
 		LIMIT 1",
-		'_agdc_market_key',
-		'_agdc_content_kind',
-		'agdc_roundup',
+		UCIKI_DEALS_META_MARKET_KEY,
+		UCIKI_DEALS_META_CONTENT_KIND,
+		UCIKI_DEALS_POST_TYPE_DIGEST,
 		$defaultMarketKey,
-		'discount_roundup',
+		UCIKI_DEALS_CONTENT_KIND_DAILY_DIGEST,
 		$today
 	)
 );
 
-if ($sourceRoundupId > 0) {
-	$roundups = $wpdb->get_results(
+if ($sourceDigestId > 0) {
+	$digests = $wpdb->get_results(
 		$wpdb->prepare(
 			"SELECT p.ID, market_meta.meta_value AS market_key
 			FROM {$postTable} p
@@ -48,24 +48,24 @@ if ($sourceRoundupId > 0) {
 			WHERE p.post_type = %s
 				AND kind_meta.meta_value = %s
 				AND DATE(p.post_date) = %s",
-			'_agdc_market_key',
-			'_agdc_content_kind',
-			'agdc_roundup',
-			'discount_roundup',
+			UCIKI_DEALS_META_MARKET_KEY,
+			UCIKI_DEALS_META_CONTENT_KIND,
+			UCIKI_DEALS_POST_TYPE_DIGEST,
+			UCIKI_DEALS_CONTENT_KIND_DAILY_DIGEST,
 			$today
 		),
 		ARRAY_A
 	);
 
-	foreach ($roundups as $roundup) {
-		$postId = (int) ($roundup['ID'] ?? 0);
-		$marketKey = (string) ($roundup['market_key'] ?? '');
+	foreach ($digests as $digest) {
+		$postId = (int) ($digest['ID'] ?? 0);
+		$marketKey = (string) ($digest['market_key'] ?? '');
 		if ($postId <= 0 || $marketKey === '' || $marketKey === $defaultMarketKey) {
 			continue;
 		}
 
-		$wpml->linkPostTranslation($sourceRoundupId, $postId, 'agdc_roundup', $marketKey);
-		echo "Linked roundup {$postId} to {$sourceRoundupId} for {$marketKey}\n";
+		$wpml->linkPostTranslation($sourceDigestId, $postId, UCIKI_DEALS_POST_TYPE_DIGEST, $marketKey);
+		echo "Linked digest {$postId} to {$sourceDigestId} for {$marketKey}\n";
 	}
 }
 
@@ -76,8 +76,8 @@ $sourceFreeRows = $wpdb->get_results(
 		INNER JOIN {$postMetaTable} market_meta ON market_meta.post_id = gp.wp_post_id AND market_meta.meta_key = %s
 		WHERE gp.content_kind = %s
 			AND market_meta.meta_value = %s",
-		'_agdc_market_key',
-		'free_game',
+		UCIKI_DEALS_META_MARKET_KEY,
+		UCIKI_DEALS_CONTENT_KIND_FREE_GAME,
 		$defaultMarketKey
 	),
 	ARRAY_A
@@ -99,8 +99,8 @@ $translatedFreeRows = $wpdb->get_results(
 		INNER JOIN {$postMetaTable} market_meta ON market_meta.post_id = gp.wp_post_id AND market_meta.meta_key = %s
 		WHERE gp.content_kind = %s
 			AND market_meta.meta_value <> %s",
-		'_agdc_market_key',
-		'free_game',
+		UCIKI_DEALS_META_MARKET_KEY,
+		UCIKI_DEALS_CONTENT_KIND_FREE_GAME,
 		$defaultMarketKey
 	),
 	ARRAY_A

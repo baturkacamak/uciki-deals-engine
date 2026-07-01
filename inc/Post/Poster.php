@@ -1,19 +1,19 @@
 <?php
 
-namespace AutoGamesDiscountCreator\Post;
+namespace UcikiDealsEngine\Post;
 
-use AutoGamesDiscountCreator\Core\Integration\WpmlSupport;
-use AutoGamesDiscountCreator\Core\Settings\SettingsRepository;
-use AutoGamesDiscountCreator\Core\Utility\Database;
-use AutoGamesDiscountCreator\Core\Utility\LocalizedTaxonomyResolver;
-use AutoGamesDiscountCreator\Core\Utility\UtilityFactory;
-use AutoGamesDiscountCreator\Core\WordPress\WordPressFunctions;
-use AutoGamesDiscountCreator\Post\Strategy\DailyPostStrategy;
-use AutoGamesDiscountCreator\Post\Strategy\PostTypeStrategy;
-use AutoGamesDiscountCreator\Core\Settings\MarketTargetRepository;
+use UcikiDealsEngine\Core\Integration\WpmlSupport;
+use UcikiDealsEngine\Core\Settings\SettingsRepository;
+use UcikiDealsEngine\Core\Utility\Database;
+use UcikiDealsEngine\Core\Utility\LocalizedTaxonomyResolver;
+use UcikiDealsEngine\Core\Utility\UtilityFactory;
+use UcikiDealsEngine\Core\WordPress\WordPressFunctions;
+use UcikiDealsEngine\Post\Strategy\DailyDigestPostStrategy;
+use UcikiDealsEngine\Post\Strategy\PostTypeStrategy;
+use UcikiDealsEngine\Core\Settings\MarketTargetRepository;
 use Exception;
 
-if (!class_exists('AutoGamesDiscountCreator\Post\Poster')) {
+if (!class_exists('UcikiDealsEngine\Post\Poster')) {
 	/**
 	 * Class Poster
 	 *
@@ -98,16 +98,16 @@ if (!class_exists('AutoGamesDiscountCreator\Post\Poster')) {
 			}
 
 			$existing_post_id = (int) ($this->wpFunctions->postExists($post_title) ?: 0);
-			if (!$this->postTypeStrategy->shouldCreatePost($game_data) && !($this->postTypeStrategy instanceof DailyPostStrategy && $existing_post_id > 0)) {
+			if (!$this->postTypeStrategy->shouldCreatePost($game_data) && !($this->postTypeStrategy instanceof DailyDigestPostStrategy && $existing_post_id > 0)) {
 				return;
 			}
 
 			$market_target = $this->postTypeStrategy->getMarketTarget();
 			$post_slug = $this->postTypeStrategy->getPostSlug();
-			$post_type = 'agdc_roundup';
+			$post_type = UCIKI_DEALS_POST_TYPE_DIGEST;
 			$snapshot_payload = null;
 			$post_content = $this->postTypeStrategy->getPostContent($game_data);
-			if ($this->postTypeStrategy instanceof DailyPostStrategy) {
+			if ($this->postTypeStrategy instanceof DailyDigestPostStrategy) {
 				$snapshot_payload = $this->postTypeStrategy->buildSnapshotPayload($game_data);
 				if ($existing_post_id > 0) {
 					$snapshot_payload = $this->mergeDailySnapshotPayload($existing_post_id, $snapshot_payload);
@@ -125,7 +125,7 @@ if (!class_exists('AutoGamesDiscountCreator\Post\Poster')) {
 				'tags_input'    => [],
 			];
 
-			if ($this->postTypeStrategy instanceof DailyPostStrategy && $existing_post_id > 0) {
+			if ($this->postTypeStrategy instanceof DailyDigestPostStrategy && $existing_post_id > 0) {
 				$post_args['ID'] = $existing_post_id;
 				$post_id = wp_update_post($post_args, true);
 			} else {
@@ -136,10 +136,10 @@ if (!class_exists('AutoGamesDiscountCreator\Post\Poster')) {
 				$copySet = (new MarketTargetRepository())->getCopySet($market_target);
 				$wpmlSupport = new WpmlSupport();
 				$this->updatePostMeta((int) $post_id, $post_title, '');
-				update_post_meta($post_id, '_agdc_market_key', (string) ($market_target['market_key'] ?? ''));
-				update_post_meta($post_id, '_agdc_language_code', (string) ($market_target['language_code'] ?? ''));
-				update_post_meta($post_id, '_agdc_site_section', (string) ($market_target['site_section'] ?? ''));
-				update_post_meta($post_id, '_agdc_content_kind', $this->postTypeStrategy->getContentKind());
+				update_post_meta($post_id, UCIKI_DEALS_META_MARKET_KEY, (string) ($market_target['market_key'] ?? ''));
+				update_post_meta($post_id, UCIKI_DEALS_META_LANGUAGE_CODE, (string) ($market_target['language_code'] ?? ''));
+				update_post_meta($post_id, UCIKI_DEALS_META_SITE_SECTION, (string) ($market_target['site_section'] ?? ''));
+				update_post_meta($post_id, UCIKI_DEALS_META_CONTENT_KIND, $this->postTypeStrategy->getContentKind());
 				$wpmlSupport->assignPostLanguage(
 					(int) $post_id,
 					(string) $post_type,
@@ -152,11 +152,11 @@ if (!class_exists('AutoGamesDiscountCreator\Post\Poster')) {
 					$this->postTypeStrategy->getContentKind(),
 					$copySet
 				);
-				if ($this->postTypeStrategy instanceof DailyPostStrategy && is_array($snapshot_payload)) {
-					update_post_meta($post_id, '_agdc_snapshot_payload', $snapshot_payload);
+				if ($this->postTypeStrategy instanceof DailyDigestPostStrategy && is_array($snapshot_payload)) {
+					update_post_meta($post_id, UCIKI_DEALS_META_SNAPSHOT_PAYLOAD, $snapshot_payload);
 				}
 				$this->markGamesAsPosted($game_data, (int) $post_id, $post_status);
-				if ($this->postTypeStrategy instanceof DailyPostStrategy && is_array($snapshot_payload)) {
+				if ($this->postTypeStrategy instanceof DailyDigestPostStrategy && is_array($snapshot_payload)) {
 					$this->refreshDailySnapshotStorage((int) $post_id, $snapshot_payload);
 				}
 			}
@@ -182,9 +182,9 @@ if (!class_exists('AutoGamesDiscountCreator\Post\Poster')) {
 			$kind = $this->postTypeStrategy->getContentKind();
 			$override = [];
 
-			if ($kind === 'free_game') {
+			if ($kind === UCIKI_DEALS_CONTENT_KIND_FREE_GAME) {
 				$override = is_array($this->settings['posting_free'] ?? null) ? $this->settings['posting_free'] : [];
-			} elseif ($kind === 'discount_roundup') {
+			} elseif ($kind === UCIKI_DEALS_CONTENT_KIND_DAILY_DIGEST) {
 				$override = is_array($this->settings['posting_daily'] ?? null) ? $this->settings['posting_daily'] : [];
 			}
 
@@ -202,11 +202,11 @@ if (!class_exists('AutoGamesDiscountCreator\Post\Poster')) {
 		{
 			global $wpdb;
 
-			$generated_posts_table = $wpdb->prefix . 'agdc_generated_posts';
+			$generated_posts_table = $wpdb->prefix . UCIKI_DEALS_TABLE_GENERATED_POSTS;
 			$market_target = $this->postTypeStrategy->getMarketTarget();
 			foreach ($gameData as $game) {
 				try {
-					$offer_id = (int) ($game['offer_id'] ?? $game['price_id'] ?? 0);
+					$offer_id = (int) ($game['offer_id'] ?? $game['source_price_id'] ?? $game['price_id'] ?? 0);
 					if ($offer_id > 0) {
 						$wpdb->replace(
 							$generated_posts_table,
@@ -226,11 +226,14 @@ if (!class_exists('AutoGamesDiscountCreator\Post\Poster')) {
 						continue;
 					}
 
-					$this->database->update(
-						'rambouillet_posts',
-						['status_wordpress' => 1],
-						['price_id' => (int)$game['price_id']]
-					);
+					$sourcePriceId = (int) ($game['source_price_id'] ?? $game['price_id'] ?? 0);
+					if ($sourcePriceId > 0) {
+						$this->database->update(
+							'generated_posts',
+							['wordpress_sync_status' => 1],
+							['source_price_id' => $sourcePriceId]
+						);
+					}
 				} catch (Exception $exception) {
 					throw $exception;
 				}
@@ -241,7 +244,7 @@ if (!class_exists('AutoGamesDiscountCreator\Post\Poster')) {
 		{
 			$merged = [];
 			$snapshots = [
-				get_post_meta($postId, '_agdc_snapshot_payload', true),
+				get_post_meta($postId, UCIKI_DEALS_META_SNAPSHOT_PAYLOAD, true),
 				$this->buildSnapshotFromGeneratedPosts($postId),
 				$newSnapshot,
 			];
@@ -274,10 +277,10 @@ if (!class_exists('AutoGamesDiscountCreator\Post\Poster')) {
 		{
 			global $wpdb;
 
-			$generatedPosts = $wpdb->prefix . 'agdc_generated_posts';
-			$offers = $wpdb->prefix . 'agdc_offers';
-			$games = $wpdb->prefix . 'agdc_games';
-			$stores = $wpdb->prefix . 'agdc_stores';
+			$generatedPosts = $wpdb->prefix . UCIKI_DEALS_TABLE_GENERATED_POSTS;
+			$offers = $wpdb->prefix . UCIKI_DEALS_TABLE_OFFERS;
+			$games = $wpdb->prefix . UCIKI_DEALS_TABLE_GAMES;
+			$stores = $wpdb->prefix . UCIKI_DEALS_TABLE_STORES;
 
 			$rows = $wpdb->get_results(
 				$wpdb->prepare(
@@ -289,7 +292,7 @@ if (!class_exists('AutoGamesDiscountCreator\Post\Poster')) {
 					WHERE gp.wp_post_id = %d AND gp.content_kind = %s
 					ORDER BY gp.id ASC",
 					$postId,
-					'discount_roundup'
+					UCIKI_DEALS_CONTENT_KIND_DAILY_DIGEST
 				),
 				ARRAY_A
 			);
@@ -323,14 +326,14 @@ if (!class_exists('AutoGamesDiscountCreator\Post\Poster')) {
 
 		private function refreshDailySnapshotStorage(int $postId, array $baseSnapshot): void
 		{
-			if (!$this->postTypeStrategy instanceof DailyPostStrategy) {
+			if (!$this->postTypeStrategy instanceof DailyDigestPostStrategy) {
 				return;
 			}
 
 			$finalSnapshot = $this->enrichSnapshotPayload(
 				$this->mergeDailySnapshotPayload($postId, $baseSnapshot)
 			);
-			update_post_meta($postId, '_agdc_snapshot_payload', $finalSnapshot);
+			update_post_meta($postId, UCIKI_DEALS_META_SNAPSHOT_PAYLOAD, $finalSnapshot);
 		}
 
 		private function enrichSnapshotPayload(array $snapshot): array
@@ -395,12 +398,12 @@ if (!class_exists('AutoGamesDiscountCreator\Post\Poster')) {
 			}
 
 			$contentKind = $this->postTypeStrategy->getContentKind();
-			if ($contentKind === 'free_game') {
+			if ($contentKind === UCIKI_DEALS_CONTENT_KIND_FREE_GAME) {
 				$defaultTarget = (new MarketTargetRepository())->findByKey($defaultMarketKey);
 				$defaultTargetId = (int) ($defaultTarget['id'] ?? 0);
 				$gameId = (int) ($gameData[0]['game_id'] ?? 0);
 				if ($defaultTargetId > 0 && $gameId > 0) {
-					$generatedPostsTable = $wpdb->prefix . 'agdc_generated_posts';
+					$generatedPostsTable = $wpdb->prefix . UCIKI_DEALS_TABLE_GENERATED_POSTS;
 					$sourcePostId = (int) $wpdb->get_var(
 						$wpdb->prepare(
 							"SELECT wp_post_id FROM {$generatedPostsTable}
@@ -410,7 +413,7 @@ if (!class_exists('AutoGamesDiscountCreator\Post\Poster')) {
 							ORDER BY id DESC
 							LIMIT 1",
 							$defaultTargetId,
-							'free_game',
+							UCIKI_DEALS_CONTENT_KIND_FREE_GAME,
 							$gameId
 						)
 					);
@@ -435,8 +438,8 @@ if (!class_exists('AutoGamesDiscountCreator\Post\Poster')) {
 						AND DATE(p.post_date) = %s
 					ORDER BY p.ID DESC
 					LIMIT 1",
-					'_agdc_market_key',
-					'_agdc_content_kind',
+					UCIKI_DEALS_META_MARKET_KEY,
+					UCIKI_DEALS_META_CONTENT_KIND,
 					$postType,
 					$defaultMarketKey,
 					$contentKind,

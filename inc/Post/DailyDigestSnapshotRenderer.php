@@ -1,8 +1,8 @@
 <?php
 
-namespace AutoGamesDiscountCreator\Post;
+namespace UcikiDealsEngine\Post;
 
-class DailyRoundupSnapshotRenderer
+class DailyDigestSnapshotRenderer
 {
 	public function getFeaturedGameFromSnapshot(array $snapshot): ?array
 	{
@@ -50,8 +50,8 @@ class DailyRoundupSnapshotRenderer
 		$steamRatingLabel = $copySet['steam_rating_label'] ?? 'Steam Rating';
 		$featuredGame = $this->getFeaturedGameFromSnapshot($snapshot);
 
-		$html = '<section class="agdc-roundup">';
-		$html .= '<div class="steam-content-body agdc-roundup__intro"><p>' . esc_html($intro) . '</p></div>';
+		$html = '<section class="uciki_deals-digest">';
+		$html .= '<div class="steam-content-body uciki_deals-digest__intro"><p>' . esc_html($intro) . '</p></div>';
 		if (is_array($featuredGame)) {
 			$html .= $this->renderFeaturedGame(
 				$featuredGame,
@@ -71,7 +71,7 @@ class DailyRoundupSnapshotRenderer
 				$steamRatingLabel
 			);
 		}
-		$html .= '<div class="steam-cards agdc-roundup__cards"><div class="ui cards">';
+		$html .= '<div class="steam-cards uciki_deals-digest__cards"><div class="ui cards">';
 
 		foreach ($games as $game) {
 			$isFeatured = is_array($featuredGame)
@@ -82,17 +82,17 @@ class DailyRoundupSnapshotRenderer
 				continue;
 			}
 
-			$html .= '<article class="ui card agdc-roundup-card">';
+			$html .= '<article class="ui card uciki_deals-digest-card">';
 
 			if (!empty($game['resolved_image_url'])) {
-				$html .= '<div class="image agdc-roundup-card__image"><a href="' . esc_url((string) $game['url']) . '" target="_blank" rel="noopener">';
+				$html .= '<div class="image uciki_deals-digest-card__image"><a href="' . esc_url((string) $game['url']) . '" target="_blank" rel="noopener">';
 				$html .= '<img src="' . esc_url((string) $game['resolved_image_url']) . '" alt="' . esc_attr((string) $game['name']) . '">';
 				$html .= '</a></div>';
 			}
 
-			$html .= '<div class="content agdc-roundup-card__content">';
-			$html .= '<a class="header agdc-roundup-card__title" href="' . esc_url((string) $game['url']) . '" target="_blank" rel="noopener">' . esc_html((string) $game['name']) . '</a>';
-			$html .= '<div class="description agdc-roundup-card__meta">';
+			$html .= '<div class="content uciki_deals-digest-card__content">';
+			$html .= '<a class="header uciki_deals-digest-card__title" href="' . esc_url((string) $game['url']) . '" target="_blank" rel="noopener">' . esc_html((string) $game['name']) . '</a>';
+			$html .= '<div class="description uciki_deals-digest-card__meta">';
 			$html .= '<div>' . esc_html($priceLabel) . ': <strong>' . esc_html($this->formatPrice($game['price'] ?? 0, (string) ($game['currency_code'] ?? 'USD'))) . '</strong></div>';
 			if (!empty($game['regular_price'])) {
 				$html .= '<div>' . esc_html($regularPriceLabel) . ': <strong>' . esc_html($this->formatPrice($game['regular_price'], (string) ($game['currency_code'] ?? 'USD'))) . '</strong></div>';
@@ -103,7 +103,7 @@ class DailyRoundupSnapshotRenderer
 				$html .= '<div>' . esc_html($row['label']) . ': <strong>' . esc_html($row['value']) . '</strong></div>';
 			}
 			$html .= '</div></div>';
-			$html .= '<div class="extra content agdc-roundup-card__footer"><a href="' . esc_url((string) $game['url']) . '" target="_blank" rel="noopener">' . esc_html($ctaLabel) . '</a></div>';
+			$html .= '<div class="extra content uciki_deals-digest-card__footer"><a href="' . esc_url((string) $game['url']) . '" target="_blank" rel="noopener">' . esc_html($ctaLabel) . '</a></div>';
 			$html .= '</article>';
 		}
 
@@ -269,20 +269,20 @@ class DailyRoundupSnapshotRenderer
 		string $opencriticLabel,
 		string $steamRatingLabel
 	): string {
-		$html = '<article class="agdc-featured">';
-		$html .= '<div class="agdc-featured__media">';
+		$html = '<article class="uciki_deals-featured">';
+		$html .= '<div class="uciki_deals-featured__media">';
 		if (!empty($game['resolved_image_url'])) {
 			$html .= '<a href="' . esc_url((string) $game['url']) . '" target="_blank" rel="noopener">';
 			$html .= '<img src="' . esc_url((string) $game['resolved_image_url']) . '" alt="' . esc_attr((string) $game['name']) . '">';
 			$html .= '</a>';
 		}
 		$html .= '</div>';
-		$html .= '<div class="agdc-featured__body">';
-		$html .= '<div class="agdc-featured__eyebrow">' . esc_html($featuredLabel) . '</div>';
-		$html .= '<a class="agdc-featured__title" href="' . esc_url((string) $game['url']) . '" target="_blank" rel="noopener">' . esc_html((string) ($game['name'] ?? '')) . '</a>';
-		$html .= '<div class="agdc-featured__reason"><strong>' . esc_html($featuredReasonLabel) . ':</strong> ';
+		$html .= '<div class="uciki_deals-featured__body">';
+		$html .= '<div class="uciki_deals-featured__eyebrow">' . esc_html($featuredLabel) . '</div>';
+		$html .= '<a class="uciki_deals-featured__title" href="' . esc_url((string) $game['url']) . '" target="_blank" rel="noopener">' . esc_html((string) ($game['name'] ?? '')) . '</a>';
+		$html .= '<div class="uciki_deals-featured__reason"><strong>' . esc_html($featuredReasonLabel) . ':</strong> ';
 		$html .= esc_html($this->buildFeaturedReason($game, $featuredDiscountPhrase, $featuredScorePhrase, $featuredPricePhrase)) . '</div>';
-		$html .= '<div class="agdc-featured__stats">';
+		$html .= '<div class="uciki_deals-featured__stats">';
 		$html .= '<div>' . esc_html($priceLabel) . ': <strong>' . esc_html($this->formatPrice($game['price'] ?? 0, (string) ($game['currency_code'] ?? 'USD'))) . '</strong></div>';
 		if (!empty($game['regular_price'])) {
 			$html .= '<div>' . esc_html($regularPriceLabel) . ': <strong>' . esc_html($this->formatPrice($game['regular_price'], (string) ($game['currency_code'] ?? 'USD'))) . '</strong></div>';
@@ -293,7 +293,7 @@ class DailyRoundupSnapshotRenderer
 			$html .= '<div>' . esc_html($row['label']) . ': <strong>' . esc_html($row['value']) . '</strong></div>';
 		}
 		$html .= '</div>';
-		$html .= '<div class="agdc-featured__footer"><a href="' . esc_url((string) $game['url']) . '" target="_blank" rel="noopener">' . esc_html($ctaLabel) . '</a></div>';
+		$html .= '<div class="uciki_deals-featured__footer"><a href="' . esc_url((string) $game['url']) . '" target="_blank" rel="noopener">' . esc_html($ctaLabel) . '</a></div>';
 		$html .= '</div>';
 		$html .= '</article>';
 

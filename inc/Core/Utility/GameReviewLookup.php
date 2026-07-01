@@ -1,12 +1,12 @@
 <?php
 
-namespace AutoGamesDiscountCreator\Core\Utility;
+namespace UcikiDealsEngine\Core\Utility;
 
 use Throwable;
 
 class GameReviewLookup
 {
-	private const CACHE_PREFIX = 'agdc_itad_reviews_';
+	private const CACHE_PREFIX = 'uciki_deals_itad_reviews_';
 	private WebClient $webClient;
 
 	public function __construct(WebClient $webClient)

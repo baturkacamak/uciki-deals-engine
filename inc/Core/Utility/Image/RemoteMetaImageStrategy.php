@@ -1,9 +1,9 @@
 <?php
 
-namespace AutoGamesDiscountCreator\Core\Utility\Image;
+namespace UcikiDealsEngine\Core\Utility\Image;
 
-use AutoGamesDiscountCreator\Core\Utility\Image\Strategy\ImageSourceStrategyInterface;
-use AutoGamesDiscountCreator\Core\Utility\ImageRetriever;
+use UcikiDealsEngine\Core\Utility\Image\Strategy\ImageSourceStrategyInterface;
+use UcikiDealsEngine\Core\Utility\ImageRetriever;
 
 class RemoteMetaImageStrategy implements ImageSourceStrategyInterface
 {

@@ -1,8 +1,8 @@
 <?php
 
-use AutoGamesDiscountCreator\Core\Integration\WpmlSupport;
-use AutoGamesDiscountCreator\Core\Settings\MarketTargetRepository;
-use AutoGamesDiscountCreator\Core\Utility\LocalizedTaxonomyResolver;
+use UcikiDealsEngine\Core\Integration\WpmlSupport;
+use UcikiDealsEngine\Core\Settings\MarketTargetRepository;
+use UcikiDealsEngine\Core\Utility\LocalizedTaxonomyResolver;
 
 if (!defined('ABSPATH')) {
 	exit("Run this file with wp eval-file.\n");
@@ -24,7 +24,7 @@ foreach ($candidateKeys as $candidateKey) {
 }
 
 $query = new WP_Query([
-	'post_type' => ['agdc_roundup', 'post'],
+	'post_type' => [UCIKI_DEALS_POST_TYPE_DIGEST, 'post'],
 	'post_status' => ['publish', 'draft', 'private'],
 	'posts_per_page' => -1,
 	'orderby' => 'ID',
@@ -32,12 +32,12 @@ $query = new WP_Query([
 	'meta_query' => [
 		'relation' => 'OR',
 		[
-			'key' => '_agdc_content_kind',
-			'value' => 'discount_roundup',
+			'key' => UCIKI_DEALS_META_CONTENT_KIND,
+			'value' => UCIKI_DEALS_CONTENT_KIND_DAILY_DIGEST,
 		],
 		[
-			'key' => '_agdc_content_kind',
-			'value' => 'free_game',
+			'key' => UCIKI_DEALS_META_CONTENT_KIND,
+			'value' => UCIKI_DEALS_CONTENT_KIND_FREE_GAME,
 		],
 	],
 ]);
@@ -49,12 +49,12 @@ foreach ($query->posts as $post) {
 		continue;
 	}
 
-	$contentKind = (string) get_post_meta($post->ID, '_agdc_content_kind', true);
-	if (!in_array($contentKind, ['discount_roundup', 'free_game'], true)) {
+	$contentKind = (string) get_post_meta($post->ID, UCIKI_DEALS_META_CONTENT_KIND, true);
+	if (!in_array($contentKind, [UCIKI_DEALS_CONTENT_KIND_DAILY_DIGEST, UCIKI_DEALS_CONTENT_KIND_FREE_GAME], true)) {
 		continue;
 	}
 
-	$marketKey = (string) get_post_meta($post->ID, '_agdc_market_key', true);
+	$marketKey = (string) get_post_meta($post->ID, UCIKI_DEALS_META_MARKET_KEY, true);
 	if ($marketKey === '' && $wpml->isAvailable()) {
 		$elementType = apply_filters('wpml_element_type', 'post_' . $post->post_type);
 		$details = apply_filters('wpml_element_language_details', null, [
@@ -64,20 +64,20 @@ foreach ($query->posts as $post) {
 
 		if (is_object($details) && !empty($details->language_code)) {
 			$marketKey = (string) $details->language_code;
-			update_post_meta($post->ID, '_agdc_market_key', $marketKey);
+			update_post_meta($post->ID, UCIKI_DEALS_META_MARKET_KEY, $marketKey);
 		}
 	}
 
 	if ($marketKey === '' || empty($targetsByKey[$marketKey])) {
 		$marketKey = (string) ($repo->getDefaultTarget()['key'] ?? 'tr-tr');
-		update_post_meta($post->ID, '_agdc_market_key', $marketKey);
+		update_post_meta($post->ID, UCIKI_DEALS_META_MARKET_KEY, $marketKey);
 	}
 
 	$target = $targetsByKey[$marketKey] ?? $repo->getDefaultTarget();
 	$copySet = $repo->getCopySet($target);
 
-	update_post_meta($post->ID, '_agdc_language_code', (string) ($target['language_code'] ?? ''));
-	update_post_meta($post->ID, '_agdc_site_section', (string) ($target['site_section'] ?? ''));
+	update_post_meta($post->ID, UCIKI_DEALS_META_LANGUAGE_CODE, (string) ($target['language_code'] ?? ''));
+	update_post_meta($post->ID, UCIKI_DEALS_META_SITE_SECTION, (string) ($target['site_section'] ?? ''));
 
 	$resolver->assignTermsToPost($post->ID, $target, $contentKind, $copySet);
 
@@ -91,4 +91,4 @@ foreach ($query->posts as $post) {
 	$updated++;
 }
 
-echo sprintf("Done. Updated %d AGDC posts.\n", $updated);
+echo sprintf("Done. Updated %d Uciki Deals posts.\n", $updated);

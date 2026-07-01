@@ -1,14 +1,14 @@
 <?php
 
-namespace AutoGamesDiscountCreator\Modules;
+namespace UcikiDealsEngine\Modules;
 
-use AutoGamesDiscountCreator\Core\Module\AbstractModule;
-use AutoGamesDiscountCreator\Core\Settings\MarketTargetRepository;
+use UcikiDealsEngine\Core\Module\AbstractModule;
+use UcikiDealsEngine\Core\Settings\MarketTargetRepository;
 use WP_Query;
 
 class AdminLanguageFilterModule extends AbstractModule
 {
-	private const QUERY_FLAG = '_agdc_admin_lang_filter';
+	private const QUERY_FLAG = '_uciki_deals_admin_lang_filter';
 
 	public function setup()
 	{
@@ -45,12 +45,12 @@ class AdminLanguageFilterModule extends AbstractModule
 			return $join;
 		}
 
-		if (str_contains($join, 'agdc_admin_wpml')) {
+		if (str_contains($join, 'uciki_deals_admin_wpml')) {
 			return $join;
 		}
 
 		return $join . $wpdb->prepare(
-			" INNER JOIN {$table} agdc_admin_wpml ON {$wpdb->posts}.ID = agdc_admin_wpml.element_id AND agdc_admin_wpml.element_type = %s ",
+			" INNER JOIN {$table} uciki_deals_admin_wpml ON {$wpdb->posts}.ID = uciki_deals_admin_wpml.element_id AND uciki_deals_admin_wpml.element_type = %s ",
 			$elementType
 		);
 	}
@@ -65,7 +65,7 @@ class AdminLanguageFilterModule extends AbstractModule
 		global $wpdb;
 
 		return $where . $wpdb->prepare(
-			' AND agdc_admin_wpml.language_code = %s ',
+			' AND uciki_deals_admin_wpml.language_code = %s ',
 			$languageCode
 		);
 	}
@@ -83,7 +83,7 @@ class AdminLanguageFilterModule extends AbstractModule
 
 		$postType = $this->getPostTypeForQuery($query);
 
-		return $postType === 'agdc_roundup';
+		return $postType === UCIKI_DEALS_POST_TYPE_DIGEST;
 	}
 
 	private function getQueryLanguageCode(WP_Query $query): string
@@ -114,7 +114,7 @@ class AdminLanguageFilterModule extends AbstractModule
 
 		return isset($_GET['post_type']) && is_string($_GET['post_type'])
 			? sanitize_key(wp_unslash($_GET['post_type']))
-			: 'agdc_roundup';
+			: UCIKI_DEALS_POST_TYPE_DIGEST;
 	}
 
 	private function getElementTypeForQuery(WP_Query $query): string

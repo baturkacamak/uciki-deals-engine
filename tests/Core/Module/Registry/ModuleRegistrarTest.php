@@ -6,7 +6,7 @@
  * Time: 16:56
  */
 
-use AutoGamesDiscountCreator\Core\Module\Registry\ModuleRegistrar;
+use UcikiDealsEngine\Core\Module\Registry\ModuleRegistrar;
 use PHPUnit\Framework\TestCase;
 
 class ModuleRegistrarTest extends TestCase
@@ -17,7 +17,7 @@ class ModuleRegistrarTest extends TestCase
 		$modules_directory = ModuleRegistrar::MODULES_PATH;
 		file_put_contents(
 			$modules_directory . '/TestModule.php',
-			"<?php\n namespace AutoGamesDiscountCreator\Modules; \n class TestModule extends \AutoGamesDiscountCreator\Core\Module\AbstractModule { public function setup() {} }"
+			"<?php\n namespace UcikiDealsEngine\Modules; \n class TestModule extends \UcikiDealsEngine\Core\Module\AbstractModule { public function setup() {} }"
 		);
 
 		// Call the registerModules method
@@ -28,12 +28,12 @@ class ModuleRegistrarTest extends TestCase
 		$modules =
 			array_values(
 				array_filter($modules, function ($module) {
-					return $module === 'AutoGamesDiscountCreator\Modules\TestModule';
+					return $module === 'UcikiDealsEngine\Modules\TestModule';
 				})
 			);
 
 		// Assert that the method returns the expected array of module class names
-		$this->assertEquals(['AutoGamesDiscountCreator\Modules\TestModule'], $modules);
+		$this->assertEquals(['UcikiDealsEngine\Modules\TestModule'], $modules);
 
 		// Clean up the test directory
 		unlink($modules_directory . '/TestModule.php');

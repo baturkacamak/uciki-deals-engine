@@ -1,8 +1,8 @@
 <?php
 
-namespace AutoGamesDiscountCreator\Modules;
+namespace UcikiDealsEngine\Modules;
 
-use AutoGamesDiscountCreator\Core\Module\AbstractModule;
+use UcikiDealsEngine\Core\Module\AbstractModule;
 use WP_Post;
 
 class CacheModule extends AbstractModule
@@ -24,7 +24,7 @@ class CacheModule extends AbstractModule
 
 	public function queuePurgeOnPostTransition(string $newStatus, string $oldStatus, WP_Post $post): void
 	{
-		if (($post->post_type ?? '') !== 'agdc_roundup') {
+		if (($post->post_type ?? '') !== UCIKI_DEALS_POST_TYPE_DIGEST) {
 			return;
 		}
 
@@ -32,16 +32,16 @@ class CacheModule extends AbstractModule
 			return;
 		}
 
-		$this->queueRoundupUrls((int) $post->ID);
+		$this->queueDigestUrls((int) $post->ID);
 	}
 
 	public function queuePurgeOnDelete(int $postId): void
 	{
-		if (get_post_type($postId) !== 'agdc_roundup') {
+		if (get_post_type($postId) !== UCIKI_DEALS_POST_TYPE_DIGEST) {
 			return;
 		}
 
-		$this->queueRoundupUrls($postId);
+		$this->queueDigestUrls($postId);
 	}
 
 	public function flushQueuedPurge(): void
@@ -66,7 +66,7 @@ class CacheModule extends AbstractModule
 		$this->purgePostIds = [];
 	}
 
-	private function queueRoundupUrls(int $postId): void
+	private function queueDigestUrls(int $postId): void
 	{
 		$this->purgeQueued = true;
 		$this->purgePostIds[$postId] = true;

@@ -1,6 +1,6 @@
 <?php
 
-namespace AutoGamesDiscountCreator\Core\Settings;
+namespace UcikiDealsEngine\Core\Settings;
 
 class RuntimeStateRepository
 {
@@ -9,7 +9,7 @@ class RuntimeStateRepository
 		$state = [];
 
 		if (function_exists('get_option')) {
-			$state = get_option(AGDC_RUNTIME_STATE_OPTION, []);
+			$state = get_option(UCIKI_DEALS_RUNTIME_STATE_OPTION, []);
 		}
 
 		if (!is_array($state)) {
@@ -55,7 +55,7 @@ class RuntimeStateRepository
 			$state['last_error'] = [];
 		}
 
-		update_option(AGDC_RUNTIME_STATE_OPTION, $state, false);
+		update_option(UCIKI_DEALS_RUNTIME_STATE_OPTION, $state, false);
 	}
 
 	public function markRunFailure(string $task, string $message, array $meta = []): void
@@ -79,7 +79,7 @@ class RuntimeStateRepository
 			$meta
 		);
 
-		update_option(AGDC_RUNTIME_STATE_OPTION, $state, false);
+		update_option(UCIKI_DEALS_RUNTIME_STATE_OPTION, $state, false);
 	}
 
 	public function markTestResult(string $status, string $message, array $meta = []): void
@@ -104,7 +104,7 @@ class RuntimeStateRepository
 			$state['last_error'] = [];
 		}
 
-		update_option(AGDC_RUNTIME_STATE_OPTION, $state, false);
+		update_option(UCIKI_DEALS_RUNTIME_STATE_OPTION, $state, false);
 	}
 
 	private function updateTaskState(string $key, array $data): void
@@ -112,6 +112,6 @@ class RuntimeStateRepository
 		$state = $this->getAll();
 		$existing = $state['last_run'][$key] ?? [];
 		$state['last_run'][$key] = array_merge($existing, $data);
-		update_option(AGDC_RUNTIME_STATE_OPTION, $state, false);
+		update_option(UCIKI_DEALS_RUNTIME_STATE_OPTION, $state, false);
 	}
 }

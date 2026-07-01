@@ -1,32 +1,32 @@
 <?php
 
-namespace AutoGamesDiscountCreator\Modules;
+namespace UcikiDealsEngine\Modules;
 
-use AutoGamesDiscountCreator\Core\Module\AbstractModule;
-use AutoGamesDiscountCreator\Core\Settings\MarketTargetRepository;
-use AutoGamesDiscountCreator\Core\Utility\UtilityFactory;
-use AutoGamesDiscountCreator\Post\DailyRoundupSnapshotRenderer;
+use UcikiDealsEngine\Core\Module\AbstractModule;
+use UcikiDealsEngine\Core\Settings\MarketTargetRepository;
+use UcikiDealsEngine\Core\Utility\UtilityFactory;
+use UcikiDealsEngine\Post\DailyDigestSnapshotRenderer;
 
-class RoundupModule extends AbstractModule
+class DigestModule extends AbstractModule
 {
 	public function setup()
 	{
-		$this->wpFunctions->addHook('init', 'registerRoundupPostType');
-		$this->wpFunctions->addHook('the_content', 'renderRoundupContent', 20);
-		$this->wpFunctions->addHook('request', 'mapRoundupRequest');
-		$this->wpFunctions->addHook('post_type_link', 'filterRoundupPermalink', 10, 2);
+		$this->wpFunctions->addHook('init', 'registerDigestPostType');
+		$this->wpFunctions->addHook('the_content', 'renderDigestContent', 20);
+		$this->wpFunctions->addHook('request', 'mapDigestRequest');
+		$this->wpFunctions->addHook('post_type_link', 'filterDigestPermalink', 10, 2);
 		$this->wpFunctions->addHook('admin_menu', 'hideDefaultPostsMenu', 999);
 		$this->wpFunctions->addHook('admin_init', 'redirectDefaultPostScreens');
 	}
 
-	public function registerRoundupPostType(): void
+	public function registerDigestPostType(): void
 	{
 		register_post_type(
-			'agdc_roundup',
+			UCIKI_DEALS_POST_TYPE_DIGEST,
 			[
 				'labels' => [
-					'name' => 'AGDC Roundups',
-					'singular_name' => 'AGDC Roundup',
+					'name' => 'Uciki Deal Digests',
+					'singular_name' => 'Uciki Deal Digest',
 				],
 				'public' => true,
 				'show_ui' => true,
@@ -40,24 +40,24 @@ class RoundupModule extends AbstractModule
 			]
 		);
 
-		// Support WPML-style market-prefixed roundup URLs like /tr-tr/28-mart-2026-oyun-indirimleri/.
+		// Support WPML-style market-prefixed digest URLs like /tr-tr/28-mart-2026-oyun-indirimleri/.
 		add_rewrite_rule(
 			'^([a-z]{2}-[a-z]{2})/([^/]+)/?$',
-			'index.php?lang=$matches[1]&agdc_roundup=$matches[2]&post_type=agdc_roundup',
+			'index.php?uciki_deals_digest=$matches[2]&post_type=uciki_deals_digest&lang=$matches[1]',
 			'top'
 		);
 
-		// Legacy support for previous root-level roundup URLs.
+		// Legacy support for previous root-level digest URLs.
 		add_rewrite_rule(
 			'^([a-z]{2}(?:-[a-z]{2})?-\d{4}-\d{2}-\d{2}-game-deals)/?$',
-			'index.php?agdc_roundup=$matches[1]',
+			'index.php?uciki_deals_digest=$matches[1]',
 			'top'
 		);
 	}
 
-	public function renderRoundupContent(string $content): string
+	public function renderDigestContent(string $content): string
 	{
-		if (is_admin() || !is_singular('agdc_roundup')) {
+		if (is_admin() || !is_singular(UCIKI_DEALS_POST_TYPE_DIGEST)) {
 			return $content;
 		}
 
@@ -66,26 +66,26 @@ class RoundupModule extends AbstractModule
 			return $content;
 		}
 
-		$snapshot = get_post_meta($postId, '_agdc_snapshot_payload', true);
+		$snapshot = get_post_meta($postId, UCIKI_DEALS_META_SNAPSHOT_PAYLOAD, true);
 		if (!is_array($snapshot) || empty($snapshot['games'])) {
 			return $content;
 		}
 
 		$enrichedSnapshot = $this->enrichSnapshotImages($snapshot);
 		if ($enrichedSnapshot !== $snapshot) {
-			update_post_meta($postId, '_agdc_snapshot_payload', $enrichedSnapshot);
+			update_post_meta($postId, UCIKI_DEALS_META_SNAPSHOT_PAYLOAD, $enrichedSnapshot);
 			$snapshot = $enrichedSnapshot;
 		}
 
-		$marketKey = (string) get_post_meta($postId, '_agdc_market_key', true);
+		$marketKey = (string) get_post_meta($postId, UCIKI_DEALS_META_MARKET_KEY, true);
 		$repo = new MarketTargetRepository();
 		$marketTarget = $marketKey !== '' ? ($repo->findByKey($marketKey) ?: $repo->getDefaultTarget()) : $repo->getDefaultTarget();
 		$copySet = $repo->getCopySet($marketTarget);
 
-		return (new DailyRoundupSnapshotRenderer())->render($snapshot, $copySet);
+		return (new DailyDigestSnapshotRenderer())->render($snapshot, $copySet);
 	}
 
-	public function mapRoundupRequest(array $queryVars): array
+	public function mapDigestRequest(array $queryVars): array
 	{
 		if (is_admin() || !empty($queryVars['post_type'])) {
 			return $queryVars;
@@ -107,7 +107,7 @@ class RoundupModule extends AbstractModule
 			$wpdb->prepare(
 				"SELECT ID FROM {$wpdb->posts} WHERE post_name = %s AND post_type = %s AND post_status IN ('publish','draft','private') LIMIT 1",
 				$requestedSlug,
-				'agdc_roundup'
+				UCIKI_DEALS_POST_TYPE_DIGEST
 			)
 		);
 
@@ -118,11 +118,11 @@ class RoundupModule extends AbstractModule
 		unset($queryVars['name']);
 		unset($queryVars['pagename']);
 		$queryVars['name'] = get_post_field('post_name', $postId);
-		$queryVars['agdc_roundup'] = get_post_field('post_name', $postId);
-		$queryVars['post_type'] = 'agdc_roundup';
+		$queryVars[UCIKI_DEALS_POST_TYPE_DIGEST] = get_post_field('post_name', $postId);
+		$queryVars['post_type'] = UCIKI_DEALS_POST_TYPE_DIGEST;
 		$queryVars['page'] = '';
 		$queryVars['attachment'] = '';
-		$marketKey = (string) get_post_meta($postId, '_agdc_market_key', true);
+		$marketKey = (string) get_post_meta($postId, UCIKI_DEALS_META_MARKET_KEY, true);
 		if ($marketKey !== '') {
 			$queryVars['lang'] = $marketKey;
 			do_action('wpml_switch_language', $marketKey);
@@ -131,13 +131,13 @@ class RoundupModule extends AbstractModule
 		return $queryVars;
 	}
 
-	public function filterRoundupPermalink(string $postLink, $post): string
+	public function filterDigestPermalink(string $postLink, $post): string
 	{
-		if (!is_object($post) || ($post->post_type ?? '') !== 'agdc_roundup') {
+		if (!is_object($post) || ($post->post_type ?? '') !== UCIKI_DEALS_POST_TYPE_DIGEST) {
 			return $postLink;
 		}
 
-		$marketKey = (string) get_post_meta($post->ID, '_agdc_market_key', true);
+		$marketKey = (string) get_post_meta($post->ID, UCIKI_DEALS_META_MARKET_KEY, true);
 		if ($marketKey === '') {
 			$marketKey = 'tr-tr';
 		}
@@ -162,7 +162,7 @@ class RoundupModule extends AbstractModule
 		$isPostNew = $pagenow === 'post-new.php' && (!isset($_GET['post_type']) || sanitize_key((string) wp_unslash($_GET['post_type'])) === 'post');
 
 		if ($isPostList || $isPostNew) {
-			wp_safe_redirect(admin_url('edit.php?post_type=agdc_roundup'));
+			wp_safe_redirect(admin_url('edit.php?post_type=' . UCIKI_DEALS_POST_TYPE_DIGEST));
 			exit;
 		}
 	}

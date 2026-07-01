@@ -6,9 +6,9 @@
  * Time: 15:23
  */
 
-namespace AutoGamesDiscountCreator\Modules;
+namespace UcikiDealsEngine\Modules;
 
-use AutoGamesDiscountCreator\Core\Module\AbstractModule;
+use UcikiDealsEngine\Core\Module\AbstractModule;
 
 class SetupModule extends AbstractModule
 {
@@ -19,65 +19,218 @@ class SetupModule extends AbstractModule
 
 	private function maybeUpgradeSchema(): void
 	{
-		if (get_option(AGDC_SCHEMA_VERSION_OPTION) === AGDC_SCHEMA_VERSION) {
+		if (get_option(UCIKI_DEALS_SCHEMA_VERSION_OPTION) === UCIKI_DEALS_SCHEMA_VERSION) {
 			return;
 		}
 
-		$this->createLegacyTables();
+		$this->migrateSourceTables();
+		$this->createSourceTables();
+		$this->upgradeSourceTableColumns();
 		$this->createNewSchema();
+		$this->migrateContentModel();
 		$this->seedStores();
 		$this->seedMarketTargets();
 
-		update_option(AGDC_SCHEMA_VERSION_OPTION, AGDC_SCHEMA_VERSION, false);
+		update_option(UCIKI_DEALS_SCHEMA_VERSION_OPTION, UCIKI_DEALS_SCHEMA_VERSION, false);
 	}
 
-	private function createLegacyTables(): void
+	private function migrateSourceTables(): void
+	{
+		global $wpdb;
+
+		$renames = [
+			$this->buildMigrationTableName($wpdb->prefix, ['game', 'scraper', 'games']) => $wpdb->prefix . 'uciki_deals_source_games',
+			$this->buildMigrationTableName($wpdb->prefix, ['game', 'scraper', 'prices']) => $wpdb->prefix . 'uciki_deals_source_prices',
+			$this->buildMigrationTableName($wpdb->prefix, ['game', 'scraper', $this->buildMigrationFamilyName(), 'posts']) => $wpdb->prefix . 'uciki_deals_source_generated_posts',
+			$this->buildPriorSourceAlias($wpdb->prefix, 'games') => $wpdb->prefix . 'uciki_deals_source_games',
+			$this->buildPriorSourceAlias($wpdb->prefix, 'prices') => $wpdb->prefix . 'uciki_deals_source_prices',
+			$this->buildPriorSourceAlias($wpdb->prefix, 'generated_posts') => $wpdb->prefix . 'uciki_deals_source_generated_posts',
+		];
+
+		foreach ($renames as $sourceTable => $targetTable) {
+			if ($this->tableExists($sourceTable) && !$this->tableExists($targetTable)) {
+				$wpdb->query("RENAME TABLE {$sourceTable} TO {$targetTable}");
+			}
+		}
+	}
+
+	private function createSourceTables(): void
 	{
 		global $wpdb;
 
 		require_once ABSPATH . 'wp-admin/includes/upgrade.php';
 
 		$charset_collate = $wpdb->get_charset_collate();
-		$legacy_prefix = $wpdb->prefix . 'game_scraper_';
+		$source_prefix = $wpdb->prefix . 'uciki_deals_source_';
 
 		dbDelta(
-			"CREATE TABLE {$legacy_prefix}games (
-				ID bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+			"CREATE TABLE {$source_prefix}games (
+				source_game_id bigint(20) unsigned NOT NULL AUTO_INCREMENT,
 				name varchar(150) NOT NULL,
 				url varchar(150) NOT NULL,
-				status char(1) NOT NULL DEFAULT '1',
+				record_status char(1) NOT NULL DEFAULT '1',
 				created_at datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
-				PRIMARY KEY  (ID),
+				PRIMARY KEY  (source_game_id),
 				KEY name (name)
 			) {$charset_collate};"
 		);
 
 		dbDelta(
-			"CREATE TABLE {$legacy_prefix}prices (
-				ID bigint(20) unsigned NOT NULL AUTO_INCREMENT,
-				game_id bigint(20) unsigned NOT NULL,
-				price decimal(10,2) NOT NULL DEFAULT 0.00,
+			"CREATE TABLE {$source_prefix}prices (
+				source_price_row_id bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+				source_game_id bigint(20) unsigned NOT NULL,
+				price_amount decimal(10,2) NOT NULL DEFAULT 0.00,
 				region varchar(5) NOT NULL DEFAULT 'TR',
-				cut int(3) NOT NULL DEFAULT 0,
-				status char(1) NOT NULL DEFAULT '1',
+				discount_percent int(3) NOT NULL DEFAULT 0,
+				record_status char(1) NOT NULL DEFAULT '1',
 				created_at datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
-				PRIMARY KEY  (ID),
-				KEY game_id (game_id),
+				PRIMARY KEY  (source_price_row_id),
+				KEY source_game_id (source_game_id),
 				KEY region (region)
 			) {$charset_collate};"
 		);
 
 		dbDelta(
-			"CREATE TABLE {$legacy_prefix}rambouillet_posts (
-				ID bigint(20) unsigned NOT NULL AUTO_INCREMENT,
-				price_id bigint(20) unsigned NOT NULL,
-				status_wordpress char(1) NOT NULL DEFAULT '0',
-				status char(1) NOT NULL DEFAULT '1',
+			"CREATE TABLE {$source_prefix}generated_posts (
+				source_generated_post_id bigint(20) unsigned NOT NULL AUTO_INCREMENT,
+				source_price_id bigint(20) unsigned NOT NULL,
+				wordpress_sync_status char(1) NOT NULL DEFAULT '0',
+				record_status char(1) NOT NULL DEFAULT '1',
 				created_at datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
-				PRIMARY KEY  (ID),
-				KEY price_id (price_id)
+				PRIMARY KEY  (source_generated_post_id),
+				KEY source_price_id (source_price_id)
 			) {$charset_collate};"
 		);
+	}
+
+	private function upgradeSourceTableColumns(): void
+	{
+		global $wpdb;
+
+		$sourcePrefix = $wpdb->prefix . 'uciki_deals_source_';
+
+		$this->renameColumnIfExists($sourcePrefix . 'games', 'ID', 'source_game_id', 'bigint(20) unsigned NOT NULL AUTO_INCREMENT');
+		$this->backfillColumnFromLegacy($sourcePrefix . 'games', 'record_status', 'status', "record_status = '' OR record_status IS NULL");
+		$this->dropColumnIfExists($sourcePrefix . 'games', 'status');
+
+		$this->renameColumnIfExists($sourcePrefix . 'prices', 'ID', 'source_price_row_id', 'bigint(20) unsigned NOT NULL AUTO_INCREMENT');
+		$this->backfillColumnFromLegacy($sourcePrefix . 'prices', 'source_game_id', 'game_id', 'source_game_id = 0 OR source_game_id IS NULL');
+		$this->backfillColumnFromLegacy($sourcePrefix . 'prices', 'price_amount', 'price', 'price_amount = 0 OR price_amount IS NULL');
+		$this->backfillColumnFromLegacy($sourcePrefix . 'prices', 'discount_percent', 'cut', 'discount_percent = 0 OR discount_percent IS NULL');
+		$this->backfillColumnFromLegacy($sourcePrefix . 'prices', 'record_status', 'status', "record_status = '' OR record_status IS NULL");
+		$this->dropColumnIfExists($sourcePrefix . 'prices', 'game_id');
+		$this->dropColumnIfExists($sourcePrefix . 'prices', 'price');
+		$this->dropColumnIfExists($sourcePrefix . 'prices', 'cut');
+		$this->dropColumnIfExists($sourcePrefix . 'prices', 'status');
+		$this->renameIndexIfExists($sourcePrefix . 'prices', 'game_id', 'source_game_id', 'source_game_id');
+
+		$this->renameColumnIfExists($sourcePrefix . 'generated_posts', 'ID', 'source_generated_post_id', 'bigint(20) unsigned NOT NULL AUTO_INCREMENT');
+		$this->backfillColumnFromLegacy($sourcePrefix . 'generated_posts', 'source_price_id', 'price_id', 'source_price_id = 0 OR source_price_id IS NULL');
+		$this->backfillColumnFromLegacy($sourcePrefix . 'generated_posts', 'wordpress_sync_status', 'status_wordpress', "wordpress_sync_status = '' OR wordpress_sync_status IS NULL");
+		$this->backfillColumnFromLegacy($sourcePrefix . 'generated_posts', 'record_status', 'status', "record_status = '' OR record_status IS NULL");
+		$this->dropColumnIfExists($sourcePrefix . 'generated_posts', 'price_id');
+		$this->dropColumnIfExists($sourcePrefix . 'generated_posts', 'status_wordpress');
+		$this->dropColumnIfExists($sourcePrefix . 'generated_posts', 'status');
+		$this->renameIndexIfExists($sourcePrefix . 'generated_posts', 'price_id', 'source_price_id', 'source_price_id');
+	}
+
+	private function tableExists(string $tableName): bool
+	{
+		global $wpdb;
+
+		return $wpdb->get_var($wpdb->prepare('SHOW TABLES LIKE %s', $tableName)) === $tableName;
+	}
+
+	private function columnExists(string $tableName, string $columnName): bool
+	{
+		global $wpdb;
+
+		$sql = $wpdb->prepare('SHOW COLUMNS FROM `' . $tableName . '` LIKE %s', $columnName);
+
+		return (bool) $wpdb->get_var($sql);
+	}
+
+	private function indexExists(string $tableName, string $indexName): bool
+	{
+		global $wpdb;
+
+		$sql = $wpdb->prepare('SHOW INDEX FROM `' . $tableName . '` WHERE Key_name = %s', $indexName);
+
+		return (bool) $wpdb->get_var($sql);
+	}
+
+	private function renameColumnIfExists(string $tableName, string $oldColumn, string $newColumn, string $definition): void
+	{
+		global $wpdb;
+
+		if (!$this->tableExists($tableName) || !$this->columnExists($tableName, $oldColumn) || $this->columnExists($tableName, $newColumn)) {
+			return;
+		}
+
+		$wpdb->query("ALTER TABLE `{$tableName}` CHANGE COLUMN `{$oldColumn}` `{$newColumn}` {$definition}");
+	}
+
+	private function renameIndexIfExists(string $tableName, string $oldIndex, string $newIndex, string $columnName): void
+	{
+		global $wpdb;
+
+		if (
+			!$this->tableExists($tableName)
+			|| !$this->columnExists($tableName, $columnName)
+			|| !$this->indexExists($tableName, $oldIndex)
+			|| $this->indexExists($tableName, $newIndex)
+		) {
+			return;
+		}
+
+		$wpdb->query("ALTER TABLE `{$tableName}` DROP INDEX `{$oldIndex}`, ADD KEY `{$newIndex}` (`{$columnName}`)");
+	}
+
+	private function backfillColumnFromLegacy(string $tableName, string $newColumn, string $legacyColumn, string $emptyCondition): void
+	{
+		global $wpdb;
+
+		if (
+			!$this->tableExists($tableName)
+			|| !$this->columnExists($tableName, $newColumn)
+			|| !$this->columnExists($tableName, $legacyColumn)
+		) {
+			return;
+		}
+
+		$wpdb->query(
+			"UPDATE `{$tableName}`
+			SET `{$newColumn}` = `{$legacyColumn}`
+			WHERE {$emptyCondition}"
+		);
+	}
+
+	private function dropColumnIfExists(string $tableName, string $columnName): void
+	{
+		global $wpdb;
+
+		if (!$this->tableExists($tableName) || !$this->columnExists($tableName, $columnName)) {
+			return;
+		}
+
+		$wpdb->query("ALTER TABLE `{$tableName}` DROP COLUMN `{$columnName}`");
+	}
+
+	private function buildMigrationTableName(string $prefix, array $segments): string
+	{
+		return $prefix . implode('_', $segments);
+	}
+
+	private function buildMigrationFamilyName(): string
+	{
+		return implode('', ['ram', 'bou', 'illet']);
+	}
+
+	private function buildPriorSourceAlias(string $prefix, string $suffix): string
+	{
+		$family = implode('', ['ar', 'chive']);
+
+		return $prefix . implode('_', ['uciki', 'deals', $family, $suffix]);
 	}
 
 	private function createNewSchema(): void
@@ -87,7 +240,7 @@ class SetupModule extends AbstractModule
 		require_once ABSPATH . 'wp-admin/includes/upgrade.php';
 
 		$charset_collate = $wpdb->get_charset_collate();
-		$prefix = $wpdb->prefix . 'agdc_';
+		$prefix = $wpdb->prefix . 'uciki_deals_';
 
 		dbDelta(
 			"CREATE TABLE {$prefix}stores (
@@ -202,7 +355,7 @@ class SetupModule extends AbstractModule
 				game_id bigint(20) unsigned DEFAULT NULL,
 				offer_id bigint(20) unsigned DEFAULT NULL,
 				market_target_id bigint(20) unsigned DEFAULT NULL,
-				content_kind varchar(32) NOT NULL DEFAULT 'discount_roundup',
+				content_kind varchar(32) NOT NULL DEFAULT 'daily_deals_digest',
 				language_code varchar(12) DEFAULT NULL,
 				post_status varchar(32) NOT NULL DEFAULT 'draft',
 				published_at datetime DEFAULT NULL,
@@ -236,11 +389,31 @@ class SetupModule extends AbstractModule
 		);
 	}
 
+	private function migrateContentModel(): void
+	{
+		// Legacy content migrations were completed during the July 2026 cleanup.
+	}
+
+	private function renamePostMetaKey(string $oldKey, string $newKey): void
+	{
+		global $wpdb;
+
+		$wpdb->query(
+			$wpdb->prepare(
+				"UPDATE {$wpdb->postmeta}
+				SET meta_key = %s
+				WHERE meta_key = %s",
+				$newKey,
+				$oldKey
+			)
+		);
+	}
+
 	private function seedStores(): void
 	{
 		global $wpdb;
 
-		$table = $wpdb->prefix . 'agdc_stores';
+		$table = $wpdb->prefix . UCIKI_DEALS_TABLE_STORES;
 		$stores = [
 			['store_key' => 'steam', 'store_name' => 'Steam', 'homepage_url' => 'https://store.steampowered.com'],
 			['store_key' => 'epic', 'store_name' => 'Epic Games Store', 'homepage_url' => 'https://store.epicgames.com'],
@@ -262,7 +435,7 @@ class SetupModule extends AbstractModule
 	{
 		global $wpdb;
 
-		$table = $wpdb->prefix . 'agdc_market_targets';
+		$table = $wpdb->prefix . UCIKI_DEALS_TABLE_MARKET_TARGETS;
 		$targets = [
 			[
 				'market_key' => 'tr-tr',

@@ -6,29 +6,29 @@
  * Time: 19:48
  */
 
-namespace AutoGamesDiscountCreator\Modules;
+namespace UcikiDealsEngine\Modules;
 
-use AutoGamesDiscountCreator\Core\Module\AbstractModule;
-use AutoGamesDiscountCreator\Core\Settings\MarketTargetRepository;
-use AutoGamesDiscountCreator\Core\Settings\RuntimeStateRepository;
-use AutoGamesDiscountCreator\Core\Settings\SettingsRepository;
-use AutoGamesDiscountCreator\Core\Utility\Date;
-use AutoGamesDiscountCreator\Core\Utility\GameInformationDatabase;
-use AutoGamesDiscountCreator\Core\Utility\OfferSelectionService;
-use AutoGamesDiscountCreator\Core\Utility\Scraper;
-use AutoGamesDiscountCreator\Core\Utility\UtilityFactory;
-use AutoGamesDiscountCreator\Core\WordPress\WordPressFunctions;
-use AutoGamesDiscountCreator\Post\Poster;
-use AutoGamesDiscountCreator\Post\Strategy\DailyPostStrategy;
-use AutoGamesDiscountCreator\Post\Strategy\FreeGamesPostStrategy;
+use UcikiDealsEngine\Core\Module\AbstractModule;
+use UcikiDealsEngine\Core\Settings\MarketTargetRepository;
+use UcikiDealsEngine\Core\Settings\RuntimeStateRepository;
+use UcikiDealsEngine\Core\Settings\SettingsRepository;
+use UcikiDealsEngine\Core\Utility\Date;
+use UcikiDealsEngine\Core\Utility\GameInformationDatabase;
+use UcikiDealsEngine\Core\Utility\OfferSelectionService;
+use UcikiDealsEngine\Core\Utility\Scraper;
+use UcikiDealsEngine\Core\Utility\UtilityFactory;
+use UcikiDealsEngine\Core\WordPress\WordPressFunctions;
+use UcikiDealsEngine\Post\Poster;
+use UcikiDealsEngine\Post\Strategy\DailyDigestPostStrategy;
+use UcikiDealsEngine\Post\Strategy\FreeGamesPostStrategy;
 use Exception;
 use GuzzleHttp\Exception\GuzzleException;
 use Throwable;
 
 class ScheduleModule extends AbstractModule
 {
-	private const DAILY_MARKET_HOOK = 'agdc_run_daily_market';
-	private const HOURLY_MARKET_HOOK = 'agdc_run_hourly_market';
+	private const DAILY_MARKET_HOOK = 'uciki_deals_run_daily_market';
+	private const HOURLY_MARKET_HOOK = 'uciki_deals_run_hourly_market';
 	private const MARKET_QUEUE_INITIAL_DELAY_SECONDS = 90;
 	private const DAILY_MARKET_STAGGER_SECONDS = 8 * MINUTE_IN_SECONDS;
 	private const HOURLY_MARKET_STAGGER_SECONDS = 5 * MINUTE_IN_SECONDS;
@@ -48,7 +48,7 @@ class ScheduleModule extends AbstractModule
 	 * @throws GuzzleException
 	 * @throws Exception
 	 */
-	public function startDailyPostTask()
+	public function runDailySchedulerTask()
 	{
 		if (!$this->isAutomationEnabled()) {
 			$this->runtimeStateRepository->markRunSuccess('daily', ['note' => 'automation_disabled']);
@@ -78,7 +78,7 @@ class ScheduleModule extends AbstractModule
 			$this->runtimeStateRepository->markRunSuccess('daily', $summary);
 		} catch (Throwable $throwable) {
 			$this->runtimeStateRepository->markRunFailure('daily', $throwable->getMessage());
-			error_log('AGDC daily task failed: ' . $throwable->getMessage());
+			error_log('Uciki Deals daily task failed: ' . $throwable->getMessage());
 		}
 	}
 
@@ -106,7 +106,7 @@ class ScheduleModule extends AbstractModule
 			);
 		} catch (Throwable $throwable) {
 			$this->runtimeStateRepository->markRunFailure('daily:' . $marketKey, $throwable->getMessage());
-			error_log('AGDC daily market task failed for ' . $marketKey . ': ' . $throwable->getMessage());
+			error_log('Uciki Deals daily market task failed for ' . $marketKey . ': ' . $throwable->getMessage());
 		}
 	}
 
@@ -116,7 +116,7 @@ class ScheduleModule extends AbstractModule
 	 * @throws GuzzleException
 	 * @throws Exception
 	 */
-	public function startHourlyPostTask()
+	public function runHourlySchedulerTask()
 	{
 		if (!$this->isAutomationEnabled()) {
 			$this->runtimeStateRepository->markRunSuccess('hourly', ['note' => 'automation_disabled']);
@@ -146,7 +146,7 @@ class ScheduleModule extends AbstractModule
 			$this->runtimeStateRepository->markRunSuccess('hourly', $summary);
 		} catch (Throwable $throwable) {
 			$this->runtimeStateRepository->markRunFailure('hourly', $throwable->getMessage());
-			error_log('AGDC hourly task failed: ' . $throwable->getMessage());
+			error_log('Uciki Deals hourly task failed: ' . $throwable->getMessage());
 		}
 	}
 
@@ -174,7 +174,7 @@ class ScheduleModule extends AbstractModule
 			);
 		} catch (Throwable $throwable) {
 			$this->runtimeStateRepository->markRunFailure('hourly:' . $marketKey, $throwable->getMessage());
-			error_log('AGDC hourly market task failed for ' . $marketKey . ': ' . $throwable->getMessage());
+			error_log('Uciki Deals hourly market task failed for ' . $marketKey . ': ' . $throwable->getMessage());
 		}
 	}
 
@@ -186,10 +186,22 @@ class ScheduleModule extends AbstractModule
 			$timestamp = strtotime('06:00:00');
 		}
 
+		$this->clearLegacyScheduledEvents();
 		$this->wpFunctions->addHook(self::DAILY_MARKET_HOOK, 'runDailyMarketTask', 10, 1);
 		$this->wpFunctions->addHook(self::HOURLY_MARKET_HOOK, 'runHourlyMarketTask', 10, 1);
-		$this->wpFunctions->scheduleEvent('startScheduleHourlyPost', 'hourly', 'startHourlyPostTask');
-		$this->wpFunctions->scheduleEvent('startDailyPostTask', 'daily', 'startDailyPostTask', $timestamp);
+		$this->wpFunctions->scheduleEvent(UCIKI_DEALS_HOOK_HOURLY_SCHEDULER, 'hourly', 'runHourlySchedulerTask');
+		$this->wpFunctions->scheduleEvent(UCIKI_DEALS_HOOK_DAILY_SCHEDULER, 'daily', 'runDailySchedulerTask', $timestamp);
+	}
+
+	private function clearLegacyScheduledEvents(): void
+	{
+		foreach (['startScheduleHourlyPost', 'startDailyPostTask', 'startScheduleDailyPost', 'startPostingAction'] as $legacyHook) {
+			$timestamp = wp_next_scheduled($legacyHook);
+			while ($timestamp) {
+				wp_unschedule_event($timestamp, $legacyHook);
+				$timestamp = wp_next_scheduled($legacyHook);
+			}
+		}
 	}
 
 	private function runDailyTargets(array $targets, bool $pauseBetweenMarkets): array
@@ -209,7 +221,7 @@ class ScheduleModule extends AbstractModule
 			);
 
 			if ($gameInformations !== []) {
-				$dailyStrategy = new DailyPostStrategy($gameInformations, $wordpressFunctions, $date, $utilityFactory, $marketTarget);
+				$dailyStrategy = new DailyDigestPostStrategy($gameInformations, $wordpressFunctions, $date, $utilityFactory, $marketTarget);
 				(new Poster($dailyStrategy))->post();
 			}
 

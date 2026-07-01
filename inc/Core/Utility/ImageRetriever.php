@@ -1,6 +1,6 @@
 <?php
 
-namespace AutoGamesDiscountCreator\Core\Utility;
+namespace UcikiDealsEngine\Core\Utility;
 
 use GuzzleHttp\Exception\GuzzleException;
 
@@ -9,12 +9,12 @@ use GuzzleHttp\Exception\GuzzleException;
  *
  * This class is responsible for retrieving the remote images from a given URL.
  *
- * @package AutoGamesDiscountCreator\Core\Utility
+ * @package         UcikiDealsEngine\Core\Utility
  */
 class ImageRetriever
 {
-	private const CACHE_PREFIX = 'agdc_store_image_';
-	private const CACHE_MISS_MARKER = '__agdc_store_image_miss__';
+	private const CACHE_PREFIX = 'uciki_deals_store_image_';
+	private const CACHE_MISS_MARKER = '__uciki_deals_store_image_miss__';
 
 	/**
 	 * @var WebClient

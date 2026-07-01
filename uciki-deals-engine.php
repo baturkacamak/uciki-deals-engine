@@ -1,35 +1,35 @@
 <?php
 
 /**
- * Plugin Name:     Auto Games Discount Creator
- * Plugin URI:      https://github.com/baturkacamak/auto-games-discount-creator
+ * Plugin Name:     Uciki Deals Engine
+ * Plugin URI:      https://github.com/baturkacamak/uciki-deals-engine
  * Description:     A WordPress plugin that allows you to create game discount posts automatically by scraping data from isthereanydeal.com. The plugin fetches the latest game deals and creates posts on your WordPress site, making it easier to keep your site updated with the latest game discounts.
  * Author:          Batur Kacamak
  * Author URI: 		https://batur.info
- * Text Domain:     auto-games-discount-creator
+ * Text Domain:     uciki-deals-engine
  * Domain Path:     /languages
  * Version:	       	1.1.0
  * License:         GPL-3.0+
  * License URI:     https://www.gnu.org/licenses/gpl-3.0.txt
  *
- * @package         AutoGamesDiscountCreator
+ * @package         UcikiDealsEngine
  */
 
-use AutoGamesDiscountCreator\AutoGamesDiscountCreator;
+use UcikiDealsEngine\UcikiDealsEngine;
 
 include_once __DIR__ . '/globals/constants.php';
 include_once __DIR__ . '/globals/functions.php';
 
 spl_autoload_register(
 	static function (string $class): void {
-		$prefix = 'AutoGamesDiscountCreator\\';
+		$prefix = 'UcikiDealsEngine\\';
 		if (strncmp($class, $prefix, strlen($prefix)) !== 0) {
 			return;
 		}
 
 		$relative_class = substr($class, strlen($prefix));
 		$relative_path = str_replace('\\', '/', $relative_class) . '.php';
-		$file = AGDC_PLUGIN_DIR . '/inc/' . $relative_path;
+		$file = UCIKI_DEALS_PLUGIN_DIR . '/inc/' . $relative_path;
 
 		if (file_exists($file)) {
 			require_once $file;
@@ -41,13 +41,13 @@ if (file_exists(__DIR__ . '/vendor/autoload.php')) {
 	require_once __DIR__ . '/vendor/autoload.php';
 }
 
-if (!function_exists('agdcPhpVersionNotice')) {
+if (!function_exists('uciki_deals_php_version_notice')) {
 	/**
 	 * Print admin notice regarding having an old version of PHP.
 	 *
 	 * @since 0.2
 	 */
-	function agdcPhpVersionNotice()
+	function uciki_deals_php_version_notice()
 	{
 		ob_start();
 		?>
@@ -57,8 +57,8 @@ if (!function_exists('agdcPhpVersionNotice')) {
 				printf(
 				/* translators: %s: required PHP version */
 					esc_html__(
-						'The Auto Games Discount Creator plugin requires PHP %s. Please contact your host to update your PHP version.',
-						'pwa'
+						'The Uciki Deals Engine plugin requires PHP %s. Please contact your host to update your PHP version.',
+						'uciki-deals-engine'
 					),
 					'5.6+'
 				);
@@ -70,21 +70,21 @@ if (!function_exists('agdcPhpVersionNotice')) {
 	}
 
 	if (version_compare(phpversion(), '5.6', '<')) {
-		add_action('admin_notices', 'agdcPhpVersionNotice');
+		add_action('admin_notices', 'uciki_deals_php_version_notice');
 
 		return;
 	}
 }
 
-if (!function_exists('agdcIncorrectSlugNotice')) {
+if (!function_exists('uciki_deals_incorrect_slug_notice')) {
 	/**
 	 * Print admin notice if plugin installed with incorrect slug (which impacts WordPress's auto-update system).
 	 *
 	 * @since 0.2
 	 */
-	function agdcIncorrectSlugNotice()
+	function uciki_deals_incorrect_slug_notice()
 	{
-		$actual_slug = basename(AGDC_PLUGIN_DIR);
+		$actual_slug = basename(UCIKI_DEALS_PLUGIN_DIR);
 		?>
 		<div class="notice notice-warning">
 			<p>
@@ -93,15 +93,15 @@ if (!function_exists('agdcIncorrectSlugNotice')) {
 					sprintf(
 					/* translators: %1$s is the current directory name, and %2$s is the required directory name */
 						__(
-							'You appear to have installed the Auto_Games_Discount_Creator plugin incorrectly.' .
+							'You appear to have installed the Uciki Deals Engine plugin incorrectly.' .
 							' It is currently installed in the <code>%1$s</code> directory,' .
 							' but it needs to be placed in a directory named <code>%2$s</code>.' .
 							' Please rename the directory.' .
 							' This is important for WordPress plugin auto-updates.',
-							'pwa'
+							'uciki-deals-engine'
 						),
 						$actual_slug,
-						'auto-games-discount-creator'
+						'uciki-deals-engine'
 					)
 				);
 				?>
@@ -110,18 +110,18 @@ if (!function_exists('agdcIncorrectSlugNotice')) {
 		<?php
 	}
 
-	if ('auto-games-discount-creator' !== basename(AGDC_PLUGIN_DIR)) {
-		add_action('admin_notices', 'agdcIncorrectSlugNotice');
+	if ('uciki-deals-engine' !== basename(UCIKI_DEALS_PLUGIN_DIR)) {
+		add_action('admin_notices', 'uciki_deals_incorrect_slug_notice');
 	}
 }
 
-if (!function_exists('agdcMissingDependenciesNotice')) {
-	function agdcMissingDependenciesNotice()
+if (!function_exists('uciki_deals_missing_dependencies_notice')) {
+	function uciki_deals_missing_dependencies_notice()
 	{
 		?>
 		<div class="notice notice-error">
 			<p>
-				<?php esc_html_e('Auto Games Discount Creator is active, but its Composer dependencies are missing. Run composer install in the plugin directory before enabling its automation tasks.', 'auto-games-discount-creator'); ?>
+				<?php esc_html_e('Uciki Deals Engine is active, but its Composer dependencies are missing. Run composer install in the plugin directory before enabling its automation tasks.', 'uciki-deals-engine'); ?>
 			</p>
 		</div>
 		<?php
@@ -129,9 +129,9 @@ if (!function_exists('agdcMissingDependenciesNotice')) {
 }
 
 if (!class_exists('Medoo\\Medoo') || !class_exists('GuzzleHttp\\Client')) {
-	add_action('admin_notices', 'agdcMissingDependenciesNotice');
+	add_action('admin_notices', 'uciki_deals_missing_dependencies_notice');
 
 	return;
 }
 
-AutoGamesDiscountCreator::getInstance()->init();
+UcikiDealsEngine::getInstance()->init();

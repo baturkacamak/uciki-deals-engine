@@ -1,6 +1,6 @@
 <?php
 
-namespace AutoGamesDiscountCreator\Core\Utility;
+namespace UcikiDealsEngine\Core\Utility;
 
 use Exception;
 use Medoo\Medoo;
@@ -10,7 +10,7 @@ use Medoo\Medoo;
  *
  * This class provides a convenient interface for the Medoo database library.
  *
- * @package AutoGamesDiscountCreator\Core\Utility
+ * @package         UcikiDealsEngine\Core\Utility
  */
 class Database extends Medoo
 {
@@ -38,7 +38,7 @@ class Database extends Medoo
 			'password'      => DB_PASSWORD,
 			'charset'       => 'utf8mb4',
 			'collation'     => 'utf8mb4_unicode_ci',
-			'prefix'        => $wpdb->prefix . 'game_scraper_',
+			'prefix'        => $wpdb->prefix . 'uciki_deals_source_',
 			'command'       => [
 				'SET SQL_MODE=ANSI_QUOTES',
 			],
@@ -78,7 +78,7 @@ class Database extends Medoo
 		$existing_record = self::getInstance()->get($tableName, '*', $data);
 		if (!$existing_record) {
 			self::getInstance()->insert($tableName, $data);
-			$existing_record = array_merge(['ID' => self::getInstance()->id()], $data);
+			$existing_record = array_merge([$this->resolvePrimaryKeyName($tableName) => self::getInstance()->id()], $data);
 		}
 
 		return $existing_record;
@@ -98,7 +98,11 @@ class Database extends Medoo
 		$where['LIMIT']  = 1;
 		$existing_record = self::getInstance()->get($tableName, '*', $where);
 		if ($existing_record) {
-			self::getInstance()->update($tableName, $data, ['ID' => $existing_record['ID']]);
+			$primaryKey = $this->resolvePrimaryKeyName($tableName);
+			$recordId = (int) ($existing_record[$primaryKey] ?? $existing_record['id'] ?? $existing_record['ID'] ?? 0);
+			if ($recordId > 0) {
+				self::getInstance()->update($tableName, $data, [$primaryKey => $recordId]);
+			}
 
 			return false;
 		}
@@ -106,5 +110,15 @@ class Database extends Medoo
 		self::getInstance()->insert($tableName, $data);
 
 		return self::getInstance()->id();
+	}
+
+	private function resolvePrimaryKeyName(string $tableName): string
+	{
+		return match ($tableName) {
+			'games' => 'source_game_id',
+			'prices' => 'source_price_row_id',
+			'generated_posts' => 'source_generated_post_id',
+			default => 'id',
+		};
 	}
 }

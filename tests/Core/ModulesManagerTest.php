@@ -7,9 +7,9 @@
  * Time: 15:41
  */
 
-use AutoGamesDiscountCreator\Core\Module\Initializer\ModuleInitializerInterface;
-use AutoGamesDiscountCreator\Core\Module\Registry\ModuleRegistrarInterface;
-use AutoGamesDiscountCreator\Core\ModulesManager;
+use UcikiDealsEngine\Core\Module\Initializer\ModuleInitializerInterface;
+use UcikiDealsEngine\Core\Module\Registry\ModuleRegistrarInterface;
+use UcikiDealsEngine\Core\ModulesManager;
 use PHPUnit\Framework\TestCase;
 
 class ModulesManagerTest extends TestCase
@@ -22,8 +22,8 @@ class ModulesManagerTest extends TestCase
 
 		// Define the expected module class names
 		$expected_modules = [
-			'AutoGamesDiscountCreator\Modules\Module1',
-			'AutoGamesDiscountCreator\Modules\Module2',
+			'UcikiDealsEngine\Modules\Module1',
+			'UcikiDealsEngine\Modules\Module2',
 		];
 
 		// Set up the mock object behaviors

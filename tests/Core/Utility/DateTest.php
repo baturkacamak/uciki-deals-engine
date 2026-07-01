@@ -6,7 +6,7 @@
  * Time: 17:55
  */
 
-namespace AutoGamesDiscountCreator\Core\Utility;
+namespace UcikiDealsEngine\Core\Utility;
 
 use PHPUnit\Framework\TestCase;
 

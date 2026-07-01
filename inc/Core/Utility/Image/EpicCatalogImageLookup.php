@@ -1,14 +1,14 @@
 <?php
 
-namespace AutoGamesDiscountCreator\Core\Utility\Image;
+namespace UcikiDealsEngine\Core\Utility\Image;
 
-use AutoGamesDiscountCreator\AutoGamesDiscountCreator;
-use AutoGamesDiscountCreator\Core\Utility\WebClient;
+use UcikiDealsEngine\UcikiDealsEngine;
+use UcikiDealsEngine\Core\Utility\WebClient;
 
 class EpicCatalogImageLookup
 {
-	private const CACHE_PREFIX = 'agdc_epic_free_catalog_';
-	private const MISS_OPTION = 'agdc_epic_image_misses';
+	private const CACHE_PREFIX = 'uciki_deals_epic_free_catalog_';
+	private const MISS_OPTION = 'uciki_deals_epic_image_misses';
 	private const ENDPOINT = 'https://store-site-backend-static.ak.epicgames.com/freeGamesPromotions';
 
 	private WebClient $webClient;

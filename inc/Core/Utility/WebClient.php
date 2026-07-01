@@ -6,7 +6,7 @@
  * Time: 19:13
  */
 
-namespace AutoGamesDiscountCreator\Core\Utility;
+namespace UcikiDealsEngine\Core\Utility;
 
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\GuzzleException;
@@ -23,6 +23,9 @@ class WebClient
 	{
 		$this->client = new Client(
 			array_merge([
+				'connect_timeout' => 5.0,
+				'timeout' => 20.0,
+				'read_timeout' => 20.0,
 				'headers' => [
 					'User-Agent' => 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_6) AppleWebKit/537.36' .
 					                ' (KHTML, like Gecko) Chrome/81.0.4044.138 Safari/537.36',

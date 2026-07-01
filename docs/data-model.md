@@ -1,20 +1,43 @@
-# AGDC Data Model
+# Uciki Deals Data Model
 
-The plugin now keeps legacy scrape tables intact and introduces a new operational schema for multi-region, multi-language, multi-store publishing.
+The plugin keeps `uciki_deals_source_*` tables for imported source records and introduces a publishing schema for multi-region, multi-language, multi-store delivery.
 
-## Legacy tables
+## Source tables
 
-These remain untouched and should be treated as read-only historical data:
+These store imported source rows:
 
-- `{$wpdb->prefix}game_scraper_games`
-- `{$wpdb->prefix}game_scraper_prices`
-- `{$wpdb->prefix}game_scraper_rambouillet_posts`
+- `{$wpdb->prefix}uciki_deals_source_games`
+- `{$wpdb->prefix}uciki_deals_source_prices`
+- `{$wpdb->prefix}uciki_deals_source_generated_posts`
 
-They reflect the old Turkey-first / Steam-heavy model and should not drive new scraping or posting decisions.
+They exist only for source compatibility and fallback bookkeeping.
+
+Current source-table naming:
+
+- `source_games`
+  - `source_game_id`
+  - `name`
+  - `url`
+  - `record_status`
+  - `created_at`
+- `source_prices`
+  - `source_price_row_id`
+  - `source_game_id`
+  - `price_amount`
+  - `region`
+  - `discount_percent`
+  - `record_status`
+  - `created_at`
+- `source_generated_posts`
+  - `source_generated_post_id`
+  - `source_price_id`
+  - `wordpress_sync_status`
+  - `record_status`
+  - `created_at`
 
 ## New operational tables
 
-### `{$wpdb->prefix}agdc_stores`
+### `{$wpdb->prefix}uciki_deals_stores`
 
 Defines the commercial source:
 
@@ -24,7 +47,7 @@ Defines the commercial source:
 - `humble`
 - `fanatical`
 
-### `{$wpdb->prefix}agdc_market_targets`
+### `{$wpdb->prefix}uciki_deals_market_targets`
 
 Defines the audience and publishing target:
 
@@ -44,7 +67,7 @@ Examples:
 - `gb-en`
 - `global-en`
 
-### `{$wpdb->prefix}agdc_games`
+### `{$wpdb->prefix}uciki_deals_games`
 
 Canonical game record, store-independent:
 
@@ -54,7 +77,7 @@ Canonical game record, store-independent:
 - source IDs
 - developer / publisher / artwork
 
-### `{$wpdb->prefix}agdc_offers`
+### `{$wpdb->prefix}uciki_deals_offers`
 
 Current active offer per store / market / currency:
 
@@ -73,7 +96,7 @@ Current active offer per store / market / currency:
 - `discount`
 - `free_game`
 
-### `{$wpdb->prefix}agdc_offer_snapshots`
+### `{$wpdb->prefix}uciki_deals_offer_snapshots`
 
 Historical price/availability snapshots for an offer:
 
@@ -81,11 +104,11 @@ Historical price/availability snapshots for an offer:
 - useful for SEO freshness and editorial logic
 - keeps raw payload if needed
 
-### `{$wpdb->prefix}agdc_generated_posts`
+### `{$wpdb->prefix}uciki_deals_generated_posts`
 
 Maps offers and games to generated WordPress posts by market/language/content kind.
 
-### `{$wpdb->prefix}agdc_runs`
+### `{$wpdb->prefix}uciki_deals_runs`
 
 Tracks scraper/import runs:
 

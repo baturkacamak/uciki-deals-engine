@@ -1,17 +1,17 @@
 <?php
 
-namespace AutoGamesDiscountCreator\Core\Utility;
+namespace UcikiDealsEngine\Core\Utility;
 
-use AutoGamesDiscountCreator\AutoGamesDiscountCreator;
-use AutoGamesDiscountCreator\Core\WordPress\WordPressFunctions;
+use UcikiDealsEngine\UcikiDealsEngine;
+use UcikiDealsEngine\Core\WordPress\WordPressFunctions;
 use GuzzleHttp\Cookie\CookieJar;
 use GuzzleHttp\Exception\GuzzleException;
 use Throwable;
 
-if (!class_exists('AutoGamesDiscountCreator\Core\Utility\Scraper')) {
+if (!class_exists('UcikiDealsEngine\Core\Utility\Scraper')) {
 	class Scraper
 	{
-		private const SESSION_TRANSIENT_KEY = 'agdc_itad_session_bootstrap';
+		private const SESSION_TRANSIENT_KEY = 'uciki_deals_itad_session_bootstrap';
 
 		private array $settings;
 		private WordPressFunctions $wpFunctions;
@@ -29,7 +29,7 @@ if (!class_exists('AutoGamesDiscountCreator\Core\Utility\Scraper')) {
 		public function __construct(string $type = 'daily', ?array $marketTarget = null)
 		{
 			$this->type        = $type;
-			$this->settings    = AutoGamesDiscountCreator::getInstance()->settings;
+			$this->settings    = UcikiDealsEngine::getInstance()->settings;
 			$this->wpFunctions = new WordPressFunctions($this);
 			$this->gameTitleNormalizer = new GameTitleNormalizer();
 			$this->marketTarget = $marketTarget ?? [];
@@ -46,7 +46,7 @@ if (!class_exists('AutoGamesDiscountCreator\Core\Utility\Scraper')) {
 
 			foreach ($payloads as $index => $payload) {
 				$query_key = (string) ($payload['query-key'] ?? ($this->type . '_payload_' . $index));
-				$transient_key = 'agdc_source_' . md5($marketKey . '|' . $query_key);
+				$transient_key = 'uciki_deals_source_' . md5($marketKey . '|' . $query_key);
 				$transient_data = $this->wpFunctions->getTransient($transient_key);
 
 				if (!$transient_data) {
@@ -294,7 +294,7 @@ if (!class_exists('AutoGamesDiscountCreator\Core\Utility\Scraper')) {
 
 				return $this->normalizeOffers($gids, $games_response, $prices_response);
 			} catch (Throwable $throwable) {
-				error_log('AGDC scraper payload failed: ' . $throwable->getMessage());
+				error_log('Uciki Deals scraper payload failed: ' . $throwable->getMessage());
 				return [];
 			}
 		}
@@ -599,7 +599,7 @@ if (!class_exists('AutoGamesDiscountCreator\Core\Utility\Scraper')) {
 				return $this->resolvedUrlCache[$cache_key];
 			}
 
-			$transient_key = 'agdc_offer_url_' . substr(md5($cache_key), 0, 24);
+			$transient_key = 'uciki_deals_offer_url_' . substr(md5($cache_key), 0, 24);
 			$cached_url = $this->wpFunctions->getTransient($transient_key);
 			if (is_string($cached_url) && $cached_url !== '') {
 				$this->resolvedUrlCache[$cache_key] = $cached_url;

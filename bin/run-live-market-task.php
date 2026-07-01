@@ -11,7 +11,7 @@ if (!in_array($type, ['daily', 'hourly'], true) || $marketKey === '') {
 	exit("Usage: wp eval-file run-live-market-task.php <daily|hourly> <market-key>\n");
 }
 
-$module = new \AutoGamesDiscountCreator\Modules\ScheduleModule();
+$module = new \UcikiDealsEngine\Modules\ScheduleModule();
 
 if ($type === 'daily') {
 	$module->runDailyMarketTask($marketKey);

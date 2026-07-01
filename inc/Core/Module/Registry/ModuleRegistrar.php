@@ -6,14 +6,14 @@
  * Time: 16:25
  */
 
-namespace AutoGamesDiscountCreator\Core\Module\Registry;
+namespace UcikiDealsEngine\Core\Module\Registry;
 
-use AutoGamesDiscountCreator\Core\Module\AbstractModule;
+use UcikiDealsEngine\Core\Module\AbstractModule;
 
 class ModuleRegistrar implements ModuleRegistrarInterface
 {
 
-	public const MODULES_PATH = AGDC_PLUGIN_DIR . '/inc/Modules/';
+	public const MODULES_PATH = UCIKI_DEALS_PLUGIN_DIR . '/inc/Modules/';
 
 	/**
 	 * Registers all the modules in the `Modules` directory and returns an array of module class names.
@@ -33,7 +33,7 @@ class ModuleRegistrar implements ModuleRegistrarInterface
 			}
 
 			$module_name = pathinfo($module, PATHINFO_FILENAME);
-			$class_name  = "AutoGamesDiscountCreator\\Modules\\{$module_name}";
+			$class_name  = "UcikiDealsEngine\\Modules\\{$module_name}";
 
 			if (class_exists($class_name) && is_subclass_of($class_name, AbstractModule::class)) {
 				$registered_modules[] = $class_name;

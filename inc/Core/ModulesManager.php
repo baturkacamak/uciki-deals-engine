@@ -6,18 +6,18 @@
  * Time: 21:22
  */
 
-namespace AutoGamesDiscountCreator\Core;
+namespace UcikiDealsEngine\Core;
 
-use AutoGamesDiscountCreator\Core;
-use AutoGamesDiscountCreator\Core\Module\Initializer\ModuleInitializerInterface;
-use AutoGamesDiscountCreator\Core\Module\Registry\ModuleRegistrarInterface;
+use UcikiDealsEngine\Core;
+use UcikiDealsEngine\Core\Module\Initializer\ModuleInitializerInterface;
+use UcikiDealsEngine\Core\Module\Registry\ModuleRegistrarInterface;
 
 /**
  * Modules Manager Class
  *
  * This class is responsible for registering and initializing all the modules in the `Modules` directory.
  *
- * @package AutoGamesDiscountCreator\Core
+ * @package         UcikiDealsEngine\Core
  */
 class ModulesManager
 {

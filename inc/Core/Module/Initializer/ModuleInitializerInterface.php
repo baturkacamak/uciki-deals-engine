@@ -1,6 +1,6 @@
 <?php
 
-namespace AutoGamesDiscountCreator\Core\Module\Initializer;
+namespace UcikiDealsEngine\Core\Module\Initializer;
 
 /**
  * Interface for module initializer classes.

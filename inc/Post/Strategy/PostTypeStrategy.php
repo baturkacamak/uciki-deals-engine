@@ -7,7 +7,7 @@
  * Time: 18:27
  */
 
-namespace AutoGamesDiscountCreator\Post\Strategy;
+namespace UcikiDealsEngine\Post\Strategy;
 
 /**
  * Interface PostTypeStrategy

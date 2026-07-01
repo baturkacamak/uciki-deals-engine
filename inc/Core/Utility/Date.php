@@ -6,12 +6,12 @@
  * Time: 17:09
  */
 
-namespace AutoGamesDiscountCreator\Core\Utility;
+namespace UcikiDealsEngine\Core\Utility;
 
 /**
  * Class Date
  *
- * @package AutoGamesDiscountCreator\Utility
+ * @package         UcikiDealsEngine\Utility
  */
 class Date
 {

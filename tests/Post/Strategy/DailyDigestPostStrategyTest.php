@@ -6,13 +6,16 @@
  * Time: 22:29
  */
 
-use AutoGamesDiscountCreator\Core\Utility\Date;
-use AutoGamesDiscountCreator\Core\WordPress\WordPressFunctions;
-use AutoGamesDiscountCreator\Core\WordPress\WordPressFunctionsInterface;
-use AutoGamesDiscountCreator\Post\Strategy\DailyPostStrategy;
+use UcikiDealsEngine\Core\Utility\Date;
+use UcikiDealsEngine\Core\Utility\GameReviewLookup;
+use UcikiDealsEngine\Core\Utility\OfferImageResolver;
+use UcikiDealsEngine\Core\Utility\UtilityFactory;
+use UcikiDealsEngine\Core\WordPress\WordPressFunctions;
+use UcikiDealsEngine\Core\WordPress\WordPressFunctionsInterface;
+use UcikiDealsEngine\Post\Strategy\DailyDigestPostStrategy;
 use PHPUnit\Framework\TestCase;
 
-class DailyPostStrategyTest extends TestCase
+class DailyDigestPostStrategyTest extends TestCase
 {
 	public function testShouldCreatePostReturnsTrueWhenGameDataNotEmptyAndPostDoesNotExist()
 	{
@@ -20,7 +23,7 @@ class DailyPostStrategyTest extends TestCase
 		$gameData          = [['name' => 'Test Game']];
 		$wpFunctionsMock   = $this->createMock(WordPressFunctions::class);
 		$dateMock          = $this->createMock(Date::class);
-		$dailyPostStrategy = new DailyPostStrategy($gameData, $wpFunctionsMock, $dateMock);
+		$dailyPostStrategy = new DailyDigestPostStrategy($gameData, $wpFunctionsMock, $dateMock, $this->createUtilityFactoryMock());
 		$postTitle         = date('d') . '  ' . date('Y') . ' Steam İndirimleri';
 		$wpFunctionsMock->expects($this->once())
 		                ->method('postExists')
@@ -40,7 +43,7 @@ class DailyPostStrategyTest extends TestCase
 		$gameData          = [];
 		$wpFunctionsMock   = $this->createMock(WordPressFunctions::class);
 		$dateMock          = $this->createMock(Date::class);
-		$dailyPostStrategy = new DailyPostStrategy($gameData, $wpFunctionsMock, $dateMock);
+		$dailyPostStrategy = new DailyDigestPostStrategy($gameData, $wpFunctionsMock, $dateMock, $this->createUtilityFactoryMock());
 
 		// Act
 		$shouldCreatePost = $dailyPostStrategy->shouldCreatePost($gameData);
@@ -55,7 +58,7 @@ class DailyPostStrategyTest extends TestCase
 		$gameData          = [['name' => 'Test Game']];
 		$wpFunctionsMock   = $this->createMock(WordPressFunctions::class);
 		$dateMock          = $this->createMock(Date::class);
-		$dailyPostStrategy = new DailyPostStrategy($gameData, $wpFunctionsMock, $dateMock);
+		$dailyPostStrategy = new DailyDigestPostStrategy($gameData, $wpFunctionsMock, $dateMock, $this->createUtilityFactoryMock());
 		$postTitle         = date('d') . '  ' . date('Y') . ' Steam İndirimleri';
 		$wpFunctionsMock->expects($this->once())
 		                ->method('postExists')
@@ -76,7 +79,7 @@ class DailyPostStrategyTest extends TestCase
 		$mockFunctions = $this->createMock(WordPressFunctionsInterface::class);
 		$dateMock      = $this->createMock(Date::class);
 
-		$dailyPostStrategy = new DailyPostStrategy($gameData, $mockFunctions, $dateMock);
+		$dailyPostStrategy = new DailyDigestPostStrategy($gameData, $mockFunctions, $dateMock, $this->createUtilityFactoryMock());
 
 		// Act
 		$returnedGameData = $dailyPostStrategy->getGameData([]);
@@ -102,7 +105,7 @@ class DailyPostStrategyTest extends TestCase
 		$wpFunctionsMock->method('postExists')->willReturn(false);
 		$dateMock = $this->createMock(Date::class);
 
-		$dailyPostStrategy = new DailyPostStrategy($gameData, $wpFunctionsMock, $dateMock);
+		$dailyPostStrategy = new DailyDigestPostStrategy($gameData, $wpFunctionsMock, $dateMock, $this->createUtilityFactoryMock());
 
 		// Act
 		$postContent = $dailyPostStrategy->getPostContent([]);
@@ -110,5 +113,20 @@ class DailyPostStrategyTest extends TestCase
 		// Assert
 		$this->assertIsString($postContent);
 		$this->assertEmpty($postContent);
+	}
+
+	private function createUtilityFactoryMock(): UtilityFactory
+	{
+		$utilityFactory = $this->createMock(UtilityFactory::class);
+		$offerImageResolver = $this->createMock(OfferImageResolver::class);
+		$gameReviewLookup = $this->createMock(GameReviewLookup::class);
+
+		$offerImageResolver->method('resolve')->willReturn('');
+		$gameReviewLookup->method('lookupBySlug')->willReturn([]);
+
+		$utilityFactory->method('createOfferImageResolver')->willReturn($offerImageResolver);
+		$utilityFactory->method('createGameReviewLookup')->willReturn($gameReviewLookup);
+
+		return $utilityFactory;
 	}
 }

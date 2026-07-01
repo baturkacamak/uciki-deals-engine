@@ -1,19 +1,19 @@
 <?php
 
-namespace AutoGamesDiscountCreator\Core\Utility;
+namespace UcikiDealsEngine\Core\Utility;
 
 use DOMNode;
 use DOMXPath;
 use Exception;
 use stdClass;
 
-if (!class_exists('AutoGamesDiscountCreator\GameDataParser')) {
+if (!class_exists('UcikiDealsEngine\GameDataParser')) {
 	/**
 	 * Class GameDataParser
 	 *
 	 * This class is used to parse query results and extract information from them.
 	 *
-	 * @package AutoGamesDiscountCreator
+	 * @package         UcikiDealsEngine
 	 */
 	class GameDataParser
 	{
