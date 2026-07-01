@@ -1,7 +1,7 @@
 {
   "require": {
     "catfan/medoo": "^1.5",
-    "guzzlehttp/guzzle": "^6.5",
+    "guzzlehttp/guzzle": "^7.12",
     "ext-mbstring": "*",
     "ext-libxml": "*",
     "ext-dom": "*",
